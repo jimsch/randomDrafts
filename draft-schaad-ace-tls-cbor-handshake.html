@@ -1,0 +1,1532 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" 
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+
+<html lang="en" xmlns="http://www.w3.org/1999/xhtml" xml:lang="en">
+<head profile="http://www.w3.org/2006/03/hcard http://dublincore.org/documents/2008/08/04/dc-html/">
+  <meta http-equiv="Content-Type" content="text/html; charset=us-ascii" />
+
+  <title>TLS Handshake in CBOR</title>
+
+  
+<style type="text/css">/*<![CDATA[*/
+
+body {
+  font: 16px "Helvetica Neue","Open Sans",Helvetica,Calibri,sans-serif;
+  color: #333;
+  font-size-adjust: 0.5;
+  line-height: 24px;
+  margin: 75px auto;
+  max-width: 624px;
+  padding: 0 5px;
+}
+
+.title, .filename, h1, h2, h3, h4, h5 {
+  font: 16px "Roboto Condensed","Helvetica Neue","Open Sans",Helvetica,Calibri,sans-serif;
+  font-size-adjust: 0.5;
+  font-weight: bold;
+  color: #333;
+  line-height: 100%;
+  margin: 1.2em 0 0.3em;
+}
+.title, #rfc\.title h1 { font-size: 32px; }
+h1, section h1, h2, section h2, section h3, nav h2 { font-size: 20px; }
+h3, section h4, h4, section h5 { font-size: 16px; }
+h1 a[href], h2 a[href], h3 a[href], h4 a[href] {
+  color: #333;
+}
+
+table {
+  margin-left: 0em;
+  border-collapse: collapse;
+}
+th {
+  text-align: left;
+  border-bottom: 2px solid #ddd;
+}
+td {
+  border-top: 1px solid #ddd;
+  vertical-align: top;
+}
+tr:nth-child(2n+1) > td,
+tr:nth-child(2n+1) > th {
+  background-color: #f9f9f9;
+}
+td.reference {
+  max-width: 200px;
+  border-top: none;
+  padding-right: 1em;
+}
+.right {
+  text-align: right;
+}
+
+
+table.header, table#rfc\.headerblock {
+  width: 100%;
+}
+table.header td, table#rfc\.headerblock td {
+  border: none;
+  background-color: transparent;
+  color: black;
+  padding: 0;
+}
+.filename {
+  display: block;
+  color: rgb(119, 119, 119);
+  font-size: 20px;
+  font-weight: normal;
+  line-height: 100%;
+  margin: 10px 0 32px;
+}
+#rfc\.abstract+p, #rfc\.abstract p {
+  font-size: 20px;
+  line-height: 28px;
+}
+
+samp, tt, code, pre, span.tt {
+  font: 13.5px Consolas, monospace;
+  font-size-adjust: none;
+}
+pre {
+  background-color: #eee;
+  border: 1px solid #ddd;
+  overflow-x: auto;
+  padding: 5px;
+  margin: 5px;
+}
+.figure, caption {
+  font-style: italic;
+  margin: 0 1.5em;
+  text-align: left;
+}
+
+address {
+  margin: 16px 2px;
+  line-height: 20px;
+}
+.vcard {
+  font-style: normal;
+}
+.vcardline {
+  display: block;
+}
+.vcardline .fn, address b {
+  font-weight: normal;
+}
+.vcardline .hidden {
+  display: none;
+}
+
+dl {
+  margin-left: 1em;
+}
+dl.dl-horizontal: {
+  margin-left: 0;
+}
+dl > dt {
+  float: left;
+  margin-right: 1em;
+}
+dl.nohang > dt {
+  float: none;
+}
+dl > dd {
+  margin-bottom: .5em;
+}
+dl.compact > dd {
+  margin-bottom: 0em;
+}
+dl > dd > dl {
+  margin-top: 0.5em;
+  margin-bottom: 0em;
+}
+ul.empty {
+  list-style-type: none;
+}
+ul.empty li {
+  margin-top: .5em;
+}
+
+hr {
+  border: 0;
+  border-top: 1px solid #eee;
+}
+hr.noprint {
+  display: none;
+}
+
+a {
+  text-decoration: none;
+}
+a[href] {
+  color: #2a6496;
+}
+a[href]:hover {
+  background-color: #eee;
+}
+
+p, ol, ul, li {
+  padding: 0;
+}
+p {
+  margin: 0.5em 0;
+}
+ol, ul {
+  margin: 0.2em 0 0.2em 2em;
+}
+li {
+  margin: 0.2em 0;
+}
+address {
+  font-style: normal;
+}
+
+ul.toc ul {
+  margin: 0 0 0 2em;
+}
+ul.toc li {
+  list-style: none;
+  margin: 0;
+}
+
+@media screen and (min-width: 924px) {
+  body {
+    padding-right: 350px;
+  }
+  body>ul.toc, body>#rfc\.toc {
+    position: fixed;
+    bottom: 0;
+    right: 0;
+    right: calc(50vw - 500px);
+    width: 300px;
+    z-index: 1;
+    overflow: auto;
+    overscroll-behavior: contain;
+  }
+  body>#rfc\.toc {
+    top: 55px;
+  }
+  body>ul.toc {
+    top: 100px;
+  }
+
+  ul.toc {
+    margin: 0 0 0 4px;
+    font-size: 12px;
+    line-height: 20px;
+  }
+  ul.toc ul {
+    margin-left: 1.2em;
+  }
+}
+
+.github-fork-ribbon-wrapper {
+  display: none;
+}
+@media screen and (min-width: 800px) {
+  /* "Fork me on GitHub" CSS ribbon based on
+   * https://github.com/simonwhitaker/github-fork-ribbon-css
+   */
+  .github-fork-ribbon {
+    position: absolute;
+    padding: 2px 0;
+    background-color: #a00;
+    background-image: linear-gradient(to bottom, rgba(0, 0, 0, 0), rgba(0, 0, 0, 0.15));
+    box-shadow: 0 2px 3px 0 rgba(0, 0, 0, 0.5);
+    font: 700 12px "Helvetica Neue", Helvetica, Arial, sans-serif;
+
+    pointer-events: auto;
+
+    top: 38px;
+    right: -45px;
+
+    transform: rotate(45deg);
+  }
+
+  .github-fork-ribbon a[href],
+  .github-fork-ribbon a[href]:hover {
+    color: #fff;
+    background-color: transparent;
+    text-decoration: none;
+    text-shadow: 0 -1px rgba(0, 0, 0, 0.5);
+    text-align: center;
+
+    width: 190px;
+    line-height: 18px;
+
+    display: inline-block;
+    padding: 2px 0;
+
+    border: 1.5px dotted #fff;
+    border-color: rgba(255, 255, 255, 0.6);
+  }
+
+  .github-fork-ribbon-wrapper {
+    display: block;
+    width: 130px;
+    height: 130px;
+    position: absolute;
+    overflow: hidden;
+    top: 0; right: 0;
+    z-index: 2;
+    pointer-events: none;
+  }
+}
+@media screen and (min-width: 1000px) {
+  .github-fork-ribbon-wrapper {
+    position: fixed;
+  }
+  /*]]>*/</style>
+  <meta name="viewport" content="initial-scale=1.0">
+
+
+  <link href="#rfc.toc" rel="Contents">
+<link href="#rfc.section.1" rel="Chapter" title="1 Summary">
+<link href="#rfc.section.2" rel="Chapter" title="2 Handshake Protocol">
+<link href="#rfc.section.3" rel="Chapter" title="3 Client Hello">
+<link href="#rfc.section.4" rel="Chapter" title="4 Server Hello">
+<link href="#rfc.section.5" rel="Chapter" title="5 Extensions">
+<link href="#rfc.section.5.1" rel="Chapter" title="5.1 Supported Versions">
+<link href="#rfc.section.5.2" rel="Chapter" title="5.2 Cookie">
+<link href="#rfc.section.5.3" rel="Chapter" title="5.3 Signature Algorithms">
+<link href="#rfc.section.5.4" rel="Chapter" title="5.4 Certificate Authorities">
+<link href="#rfc.section.5.5" rel="Chapter" title="5.5 OID Filters">
+<link href="#rfc.section.5.6" rel="Chapter" title="5.6 Post-Handshake Client Authentication">
+<link href="#rfc.section.5.7" rel="Chapter" title="5.7 Supported Groups">
+<link href="#rfc.section.5.8" rel="Chapter" title="5.8 Key Share">
+<link href="#rfc.section.5.8.1" rel="Chapter" title="5.8.1 ECDHE Parameters">
+<link href="#rfc.section.5.9" rel="Chapter" title="5.9 Pre-Shared Key Exchange Modes">
+<link href="#rfc.section.5.10" rel="Chapter" title="5.10 Early Data Indication">
+<link href="#rfc.section.5.11" rel="Chapter" title="5.11 Pre-Shared Key Extension">
+<link href="#rfc.section.5.12" rel="Chapter" title="5.12 Other Extensions">
+<link href="#rfc.section.6" rel="Chapter" title="6 Server Parameters">
+<link href="#rfc.section.6.1" rel="Chapter" title="6.1 Encrypted Extensions">
+<link href="#rfc.section.7" rel="Chapter" title="7 Certificate Request">
+<link href="#rfc.section.8" rel="Chapter" title="8 Authentication Messages">
+<link href="#rfc.section.8.1" rel="Chapter" title="8.1 Certificate">
+<link href="#rfc.section.8.2" rel="Chapter" title="8.2 Certificate Verify">
+<link href="#rfc.section.8.3" rel="Chapter" title="8.3 Finish">
+<link href="#rfc.section.9" rel="Chapter" title="9 Record Protocol">
+<link href="#rfc.section.9.1" rel="Chapter" title="9.1 Record Layer">
+<link href="#rfc.section.9.2" rel="Chapter" title="9.2 Record Payload Protection">
+<link href="#rfc.section.10" rel="Chapter" title="10 CBOR Slashed Version">
+<link href="#rfc.section.11" rel="Chapter" title="11 Transport with CoAP">
+<link href="#rfc.references" rel="Chapter" title="12 Informational">
+<link href="#rfc.appendix.A" rel="Chapter" title="A Sample Messages">
+<link href="#rfc.appendix.A.1" rel="Chapter" title="A.1 Standard TLS for X25519 and Ed25519">
+<link href="#rfc.appendix.A.2" rel="Chapter" title="A.2 Pre-shared key for authentication w/ ephemeral DH">
+<link href="#rfc.appendix.A.3" rel="Chapter" title="A.3 Stripped TLS w/ Ed25519">
+<link href="#rfc.appendix.A.4" rel="Chapter" title="A.4 Stripped TLS w/ PSK">
+<link href="#rfc.appendix.B" rel="Chapter" title="B Open ideas for ways to make things smaller">
+<link href="#rfc.appendix.C" rel="Chapter" title="C EDHOC issues that worry me">
+<link href="#rfc.authors" rel="Chapter">
+
+
+  <meta name="generator" content="xml2rfc version 2.15.4 - https://tools.ietf.org/tools/xml2rfc" />
+  <link rel="schema.dct" href="http://purl.org/dc/terms/" />
+
+  <meta name="dct.creator" content="Schaad, J." />
+  <meta name="dct.identifier" content="urn:ietf:id:draft-schaad-ace-tls-cbor-handshake-latest" />
+  <meta name="dct.issued" scheme="ISO8601" content="2019-17" />
+  <meta name="dct.abstract" content="None " />
+  <meta name="description" content="None " />
+
+</head>
+
+<body>
+
+  <table class="header">
+    <tbody>
+    
+    	<tr>
+<td class="left">Network Working Group</td>
+<td class="right">J. Schaad</td>
+</tr>
+<tr>
+<td class="left">Internet-Draft</td>
+<td class="right">January 17, 2019</td>
+</tr>
+<tr>
+<td class="left">Intended status: Experimental</td>
+<td class="right"></td>
+</tr>
+<tr>
+<td class="left">Expires: July 21, 2019</td>
+<td class="right"></td>
+</tr>
+
+    	
+    </tbody>
+  </table>
+
+  <p class="title">TLS Handshake in CBOR<br />
+  <span class="filename">draft-schaad-ace-tls-cbor-handshake-latest</span></p>
+  
+  <h1 id="rfc.abstract"><a href="#rfc.abstract">Abstract</a></h1>
+<p>None </p>
+<h1 id="rfc.status"><a href="#rfc.status">Status of This Memo</a></h1>
+<p>This Internet-Draft is submitted in full conformance with the provisions of BCP 78 and BCP 79.</p>
+<p>Internet-Drafts are working documents of the Internet Engineering Task Force (IETF).  Note that other groups may also distribute working documents as Internet-Drafts.  The list of current Internet-Drafts is at https://datatracker.ietf.org/drafts/current/.</p>
+<p>Internet-Drafts are draft documents valid for a maximum of six months and may be updated, replaced, or obsoleted by other documents at any time.  It is inappropriate to use Internet-Drafts as reference material or to cite them other than as "work in progress."</p>
+<p>This Internet-Draft will expire on July 21, 2019.</p>
+<h1 id="rfc.copyrightnotice"><a href="#rfc.copyrightnotice">Copyright Notice</a></h1>
+<p>Copyright (c) 2019 IETF Trust and the persons identified as the document authors.  All rights reserved.</p>
+<p>This document is subject to BCP 78 and the IETF Trust's Legal Provisions Relating to IETF Documents (https://trustee.ietf.org/license-info) in effect on the date of publication of this document.  Please review these documents carefully, as they describe your rights and restrictions with respect to this document.  Code Components extracted from this document must include Simplified BSD License text as described in Section 4.e of the Trust Legal Provisions and are provided without warranty as described in the Simplified BSD License.</p>
+
+  
+  <hr class="noprint" />
+  <h1 class="np" id="rfc.toc"><a href="#rfc.toc">Table of Contents</a></h1>
+  <ul class="toc">
+
+  	<li>1.   <a href="#rfc.section.1">Summary</a>
+</li>
+<li>2.   <a href="#rfc.section.2">Handshake Protocol</a>
+</li>
+<li>3.   <a href="#rfc.section.3">Client Hello</a>
+</li>
+<li>4.   <a href="#rfc.section.4">Server Hello</a>
+</li>
+<li>5.   <a href="#rfc.section.5">Extensions</a>
+</li>
+<ul><li>5.1.   <a href="#rfc.section.5.1">Supported Versions</a>
+</li>
+<li>5.2.   <a href="#rfc.section.5.2">Cookie</a>
+</li>
+<li>5.3.   <a href="#rfc.section.5.3">Signature Algorithms</a>
+</li>
+<li>5.4.   <a href="#rfc.section.5.4">Certificate Authorities</a>
+</li>
+<li>5.5.   <a href="#rfc.section.5.5">OID Filters</a>
+</li>
+<li>5.6.   <a href="#rfc.section.5.6">Post-Handshake Client Authentication</a>
+</li>
+<li>5.7.   <a href="#rfc.section.5.7">Supported Groups</a>
+</li>
+<li>5.8.   <a href="#rfc.section.5.8">Key Share</a>
+</li>
+<ul><li>5.8.1.   <a href="#rfc.section.5.8.1">ECDHE Parameters</a>
+</li>
+</ul><li>5.9.   <a href="#rfc.section.5.9">Pre-Shared Key Exchange Modes</a>
+</li>
+<li>5.10.   <a href="#rfc.section.5.10">Early Data Indication</a>
+</li>
+<li>5.11.   <a href="#rfc.section.5.11">Pre-Shared Key Extension</a>
+</li>
+<li>5.12.   <a href="#rfc.section.5.12">Other Extensions</a>
+</li>
+</ul><li>6.   <a href="#rfc.section.6">Server Parameters</a>
+</li>
+<ul><li>6.1.   <a href="#rfc.section.6.1">Encrypted Extensions</a>
+</li>
+</ul><li>7.   <a href="#rfc.section.7">Certificate Request</a>
+</li>
+<li>8.   <a href="#rfc.section.8">Authentication Messages</a>
+</li>
+<ul><li>8.1.   <a href="#rfc.section.8.1">Certificate</a>
+</li>
+<li>8.2.   <a href="#rfc.section.8.2">Certificate Verify</a>
+</li>
+<li>8.3.   <a href="#rfc.section.8.3">Finish</a>
+</li>
+</ul><li>9.   <a href="#rfc.section.9">Record Protocol</a>
+</li>
+<ul><li>9.1.   <a href="#rfc.section.9.1">Record Layer</a>
+</li>
+<li>9.2.   <a href="#rfc.section.9.2">Record Payload Protection</a>
+</li>
+</ul><li>10.   <a href="#rfc.section.10">CBOR Slashed Version</a>
+</li>
+<li>11.   <a href="#rfc.section.11">Transport with CoAP</a>
+</li>
+<li>12.   <a href="#rfc.references">Informational</a>
+</li>
+<li>Appendix A.   <a href="#rfc.appendix.A">Sample Messages</a>
+</li>
+<ul><li>A.1.   <a href="#rfc.appendix.A.1">Standard TLS for X25519 and Ed25519</a>
+</li>
+<li>A.2.   <a href="#rfc.appendix.A.2">Pre-shared key for authentication w/ ephemeral DH</a>
+</li>
+<li>A.3.   <a href="#rfc.appendix.A.3">Stripped TLS w/ Ed25519</a>
+</li>
+<li>A.4.   <a href="#rfc.appendix.A.4">Stripped TLS w/ PSK</a>
+</li>
+</ul><li>Appendix B.   <a href="#rfc.appendix.B">Open ideas for ways to make things smaller</a>
+</li>
+<li>Appendix C.   <a href="#rfc.appendix.C">EDHOC issues that worry me</a>
+</li>
+<li><a href="#rfc.authors">Author's Address</a>
+</li>
+
+
+  </ul>
+
+  <h1 id="rfc.section.1">
+<a href="#rfc.section.1">1.</a> Summary</h1>
+<p id="rfc.section.1.p.1">There are two measures that can be looked at when measuring how good the different options presented below are going to be.  </p>
+
+<ul>
+<li>Total Number Of Bytes: The total number of bytes that are needed to perform the key establishment protocol.  </li>
+<li>Total Number of Messages: The total number of messages that are needed to perform the key establishment protocol.  This measure is going to be dependent on which of the transports is being used.  For UDP the sizes are going to be from 576 to 1152 in the course of normal events.  This means that all of the protocols being looked at can be run in three messages without any problems.  For 6LoWPAN L2 however, the packet size is 127 bytes which leads to many more messages needed to be used.  One can send approximately 80 bytes of payload in a single message, but if one is using blockwise transfer then the payloads are going to be limited to 64 bytes.  </li>
+</ul>
+
+<p> </p>
+<p id="rfc.section.1.p.2">Summary of message sizes in bytes.  </p>
+<table cellpadding="3" cellspacing="0" class="tt full center">
+<thead><tr>
+<th class="left"></th>
+<th class="left">TLS</th>
+<th class="left">TLS</th>
+<th class="left">TLS-C</th>
+<th class="left">TLS-C</th>
+<th class="left">TLS-S</th>
+<th class="left">TLS-S</th>
+</tr></thead>
+<tbody>
+<tr>
+<td class="left"></td>
+<td class="left">RPK</td>
+<td class="left">PSK</td>
+<td class="left">RPK</td>
+<td class="left">PSK</td>
+<td class="left">RPK</td>
+<td class="left">PSK</td>
+</tr>
+<tr>
+<td class="left">Message #1</td>
+<td class="left">122</td>
+<td class="left">164</td>
+<td class="left">97</td>
+<td class="left">134</td>
+<td class="left">47</td>
+<td class="left">64</td>
+</tr>
+<tr>
+<td class="left">Message #2</td>
+<td class="left">306</td>
+<td class="left">163</td>
+<td class="left">262</td>
+<td class="left">143</td>
+<td class="left">145</td>
+<td class="left">66</td>
+</tr>
+<tr>
+<td class="left">Message #3</td>
+<td class="left">205</td>
+<td class="left">72</td>
+<td class="left">175</td>
+<td class="left">54</td>
+<td class="left">101</td>
+<td class="left">21</td>
+</tr>
+<tr>
+<td class="left">Total</td>
+<td class="left">633</td>
+<td class="left">399</td>
+<td class="left">534</td>
+<td class="left">331</td>
+<td class="left">293</td>
+<td class="left">151</td>
+</tr>
+</tbody>
+</table>
+<p id="rfc.section.1.p.3">Summary of message sizes in estimated number of messages.  </p>
+<table cellpadding="3" cellspacing="0" class="tt full center">
+<thead><tr>
+<th class="left"></th>
+<th class="left">TLS</th>
+<th class="left">TLS</th>
+<th class="left">TLS-C</th>
+<th class="left">TLS-C</th>
+<th class="left">TLS-S</th>
+<th class="left">TLS-S</th>
+</tr></thead>
+<tbody>
+<tr>
+<td class="left"></td>
+<td class="left">RPK</td>
+<td class="left">PSK</td>
+<td class="left">RPK</td>
+<td class="left">PSK</td>
+<td class="left">RPK</td>
+<td class="left">PSK</td>
+</tr>
+<tr>
+<td class="left">Message #1</td>
+<td class="left">2</td>
+<td class="left">3</td>
+<td class="left">2</td>
+<td class="left">3</td>
+<td class="left">1</td>
+<td class="left">1</td>
+</tr>
+<tr>
+<td class="left">Message #2</td>
+<td class="left">5</td>
+<td class="left">3</td>
+<td class="left">5</td>
+<td class="left">3</td>
+<td class="left">3</td>
+<td class="left">1</td>
+</tr>
+<tr>
+<td class="left">Message #3</td>
+<td class="left">4</td>
+<td class="left">1</td>
+<td class="left">3</td>
+<td class="left">1</td>
+<td class="left">2</td>
+<td class="left">1</td>
+</tr>
+<tr>
+<td class="left">Total</td>
+<td class="left">11</td>
+<td class="left">7</td>
+<td class="left">10</td>
+<td class="left">7</td>
+<td class="left">6</td>
+<td class="left">3</td>
+</tr>
+</tbody>
+</table>
+<h1 id="rfc.section.2">
+<a href="#rfc.section.2">2.</a> Handshake Protocol</h1>
+<p id="rfc.section.2.p.1">The TLS Handshake message is: </p>
+<pre>
+struct {
+    HandshakeType msg_type;    /* handshake type */
+    uint24 length;             /* remaining bytes in message */
+    select (Handshake.msg_type) {
+        case client_hello:          ClientHello;
+        case server_hello:          ServerHello;
+        case end_of_early_data:     EndOfEarlyData;
+        case encrypted_extensions:  EncryptedExtensions;
+        case certificate_request:   CertificateRequest;
+        case certificate:           Certificate;
+        case certificate_verify:    CertificateVerify;
+        case finished:              Finished;
+        case new_session_ticket:    NewSessionTicket;
+        case key_update:            KeyUpdate;
+    };
+} Handshake;
+      </pre>
+<p id="rfc.section.2.p.2">For the CBOR encoding make the following changes: </p>
+
+<ul>
+<li>Remove the length field: It is expected that this can be passed down from the record layer.</li>
+<li>Make the message type and field be a map.</li>
+</ul>
+
+<p> </p>
+<pre>
+Handshake = handshakeMessage
+
+handshakeMessage = {
+   1 : ClientHello,
+   2 : ServerHello,
+   3 : EndOfEarlyData,
+   4 : EncryptedExtensions,
+   5 : CertificateRequest,
+   6 : Certificate,
+   7 : CertificateVerify,
+   8 : Finished,
+   9 : NewSessionTicket,
+   10 : KeyUpdate
+}
+      </pre>
+<p id="rfc.section.2.p.3">Expected space savings: </p>
+
+<ul><li>3 bytes for the length</li></ul>
+
+<p> </p>
+<h1 id="rfc.section.3">
+<a href="#rfc.section.3">3.</a> Client Hello</h1>
+<p id="rfc.section.3.p.1">The TLS Client Hello structure is: </p>
+<pre>
+uint16 ProtocolVersion;
+opaque Random[32];
+
+uint8 CipherSuite[2];    /* Cryptographic suite selector */
+
+struct {
+    ProtocolVersion legacy_version = 0x0303;    /* TLS v1.2 */
+    Random random;
+    opaque legacy_session_id&lt;0..32&gt;;
+    CipherSuite cipher_suites&lt;2..2^16-2&gt;;
+    opaque legacy_compression_methods&lt;1..2^8-1&gt;;
+    Extension extensions&lt;8..2^16-1&gt;;
+} ClientHello;
+</pre>
+<p id="rfc.section.3.p.2">For the CBOR encoding make the following changes: </p>
+
+<ul><li>Remove all of the legacy items - reduction of 5 bytes + lengths?.</li></ul>
+
+<p> </p>
+<pre>
+ClientHello = [
+    random : bstr .len 32,
+    cipher_suites : [+ int . len 1], // max 2^8-1
+    extensions : [ + Extension ]
+]
+</pre>
+<h1 id="rfc.section.4">
+<a href="#rfc.section.4">4.</a> Server Hello</h1>
+<p id="rfc.section.4.p.1">The TLS Server Hello structure is: </p>
+<pre>
+struct {
+    ProtocolVersion legacy_version = 0x0303;    /* TLS v1.2 */
+    Random random;
+    opaque legacy_session_id_echo&lt;0..32&gt;;
+    CipherSuite cipher_suite;
+    uint8 legacy_compression_method = 0;
+    Extension extensions&lt;6..2^16-1&gt;;
+} ServerHello;
+</pre>
+<p id="rfc.section.4.p.2">For the CBOR encoding make the following changes: </p>
+
+<ul><li>Remove all of the legacy fields.</li></ul>
+
+<p> </p>
+<pre>
+ServerHello = [
+   random : bstr .len 32
+   cipher_suite : int,
+   extensions : [ + Extension ]
+]
+</pre>
+<h1 id="rfc.section.5">
+<a href="#rfc.section.5">5.</a> Extensions</h1>
+<p id="rfc.section.5.p.1">The TLS Extenions field is: </p>
+<pre>
+struct {
+     ExtensionType extension_type;
+     opaque extension_data&lt;0..2^16-1&gt;;
+ } Extension;
+
+ enum {
+     server_name(0),                             /* RFC 6066 */
+     max_fragment_length(1),                     /* RFC 6066 */
+     status_request(5),                          /* RFC 6066 */
+     supported_groups(10),                       /* RFC 8422, 7919 */
+     signature_algorithms(13),                   /* RFC 8446 */
+     use_srtp(14),                               /* RFC 5764 */
+     heartbeat(15),                              /* RFC 6520 */
+     application_layer_protocol_negotiation(16), /* RFC 7301 */
+     signed_certificate_timestamp(18),           /* RFC 6962 */
+     client_certificate_type(19),                /* RFC 7250 */
+     server_certificate_type(20),                /* RFC 7250 */
+     padding(21),                                /* RFC 7685 */
+     pre_shared_key(41),                         /* RFC 8446 */
+     early_data(42),                             /* RFC 8446 */
+     supported_versions(43),                     /* RFC 8446 */
+     cookie(44),                                 /* RFC 8446 */
+     psk_key_exchange_modes(45),                 /* RFC 8446 */
+     certificate_authorities(47),                /* RFC 8446 */
+     oid_filters(48),                            /* RFC 8446 */
+     post_handshake_auth(49),                    /* RFC 8446 */
+     signature_algorithms_cert(50),              /* RFC 8446 */
+     key_share(51),                              /* RFC 8446 */
+     (65535)
+ } ExtensionType;
+      </pre>
+<p id="rfc.section.5.p.2">For the CBOR encoding make the following changes: </p>
+
+<ul>
+<li>Remove items we don't care about</li>
+<li>Encode as a map.</li>
+</ul>
+
+<p> </p>
+<pre>
+ExtensionType = (
+//  0 : ServerName,
+//  1 : max_fragment_length,
+//  5 : status_request,
+  10 : supported_groups,
+  13 : signature_algorithms,
+//  14 : use_srtp,
+//  15 : heartbeat,
+//  16 : application_layer_protocol_negoiation,
+//  18 : signed_certificate_timestamp,
+//  19 : client_certificate_type,
+//  20 : server_certificate_type,
+//  21 : padding,
+  41 : pre_shared_key,
+//  42 : early_data,
+//  43 : supported_versions,
+//  44 : cookie,
+  45 : psk_key_exchange_modes,
+//  47 : certificate_authorities,
+//  48 : oid_filters,
+//  49 : post_handshake_auth,
+//  50 : signature_algoirthms_cert,
+  51 : key_share
+)
+
+Extension = ( int, any )  
+      </pre>
+<h1 id="rfc.section.5.1">
+<a href="#rfc.section.5.1">5.1.</a> Supported Versions</h1>
+<p id="rfc.section.5.1.p.1">Not currently used as we only have one version.  If absent it will be assumed to be this version.  </p>
+<h1 id="rfc.section.5.2">
+<a href="#rfc.section.5.2">5.2.</a> Cookie</h1>
+<p id="rfc.section.5.2.p.1">There is no reason for this extension to be used in CoRE.  For the same functionality use <a href="#I-D.ietf-core-echo-request-tag" class="xref">[I-D.ietf-core-echo-request-tag]</a>.  </p>
+<h1 id="rfc.section.5.3">
+<a href="#rfc.section.5.3">5.3.</a> Signature Algorithms</h1>
+<p id="rfc.section.5.3.p.1">The TLS signature algorithm structures are: </p>
+<pre>
+enum {
+    /* RSASSA-PKCS1-v1_5 algorithms */
+    rsa_pkcs1_sha256(0x0401),
+    rsa_pkcs1_sha384(0x0501),
+    rsa_pkcs1_sha512(0x0601),
+
+    /* ECDSA algorithms */
+    ecdsa_secp256r1_sha256(0x0403),
+    ecdsa_secp384r1_sha384(0x0503),
+    ecdsa_secp521r1_sha512(0x0603),
+
+    /* RSASSA-PSS algorithms with public key OID rsaEncryption */
+    rsa_pss_rsae_sha256(0x0804),
+    rsa_pss_rsae_sha384(0x0805),
+    rsa_pss_rsae_sha512(0x0806),
+
+    /* EdDSA algorithms */
+    ed25519(0x0807),
+    ed448(0x0808),
+
+    /* RSASSA-PSS algorithms with public key OID RSASSA-PSS */
+    rsa_pss_pss_sha256(0x0809),
+    rsa_pss_pss_sha384(0x080a),
+    rsa_pss_pss_sha512(0x080b),
+
+    /* Legacy algorithms */
+    rsa_pkcs1_sha1(0x0201),
+    ecdsa_sha1(0x0203),
+
+    /* Reserved Code Points */
+    private_use(0xFE00..0xFFFF),
+    (0xFFFF)
+} SignatureScheme;
+
+struct {
+    SignatureScheme supported_signature_algorithms&lt;2..2^16-2&gt;;
+} SignatureSchemeList;
+</pre>
+<p id="rfc.section.5.3.p.2">One of the differences that may need to be dealt with at this point is the question of keeping the same enumeration as TLS uses or if the enumeration should be changed.  For this document the same enumeration is being kept.  TLS uses the current two byte format because it separates the hash algorithm from the public key algorithms.  For a single algorithm this ends up being 3 bytes for CBOR and 4 bytes for TLS.  Each additional algorithm adds 2 bytes until you get to 12 algorithms.  If one switched to using integer values from the COSE tables, then one ends up with the same byte count.  </p>
+<p id="rfc.section.5.3.p.3">For the CBOR encoding make the following changes: </p>
+
+<ul><li>None</li></ul>
+
+<p> </p>
+<h1 id="rfc.section.5.4">
+<a href="#rfc.section.5.4">5.4.</a> Certificate Authorities</h1>
+<p id="rfc.section.5.4.p.1">Not used.  </p>
+<h1 id="rfc.section.5.5">
+<a href="#rfc.section.5.5">5.5.</a> OID Filters</h1>
+<p id="rfc.section.5.5.p.1">Not used.  </p>
+<h1 id="rfc.section.5.6">
+<a href="#rfc.section.5.6">5.6.</a> Post-Handshake Client Authentication</h1>
+<p id="rfc.section.5.6.p.1">Not used.  </p>
+<h1 id="rfc.section.5.7">
+<a href="#rfc.section.5.7">5.7.</a> Supported Groups</h1>
+<p id="rfc.section.5.7.p.1">The TLS structure is: </p>
+<pre>
+enum {
+
+    /* Elliptic Curve Groups (ECDHE) */
+    secp256r1(0x0017), secp384r1(0x0018), secp521r1(0x0019),
+    x25519(0x001D), x448(0x001E),
+
+    /* Finite Field Groups (DHE) */
+    ffdhe2048(0x0100), ffdhe3072(0x0101), ffdhe4096(0x0102),
+    ffdhe6144(0x0103), ffdhe8192(0x0104),
+
+    /* Reserved Code Points */
+    ffdhe_private_use(0x01FC..0x01FF),
+    ecdhe_private_use(0xFE00..0xFEFF),
+    (0xFFFF)
+} NamedGroup;
+
+struct {
+    NamedGroup named_group_list&lt;2..2^16-1&gt;;
+} NamedGroupList;
+</pre>
+<p id="rfc.section.5.7.p.2">It makes more sense to change the enumeration from that used by TLS to the COSE EC curve registry as those values are only single byte values and are small.  One implication is that all of the Finite Field Groups are dropped, but this should not be a problem.  This means a 2 byte value for a single curve in the CBOR version rather than a 4 byte encoding for TLS.  Adding a second curve adds one byte for CBOR and 2 bytes for TLS.  </p>
+<p id="rfc.section.5.7.p.3">For the CBOR encoding make the following changes: </p>
+
+<ul><li>Change from a two byte enumeration to the the integer values from the COSE EC curve registry.  </li></ul>
+
+<p> </p>
+<pre>
+NamedGroup = {
+    secp256r1: 1, secp384r1: 2, secp521r1: 3,
+    x25519: 4, x448:5
+}
+
+supported_groups = [ + NamedGroup ]
+        </pre>
+<h1 id="rfc.section.5.8">
+<a href="#rfc.section.5.8">5.8.</a> Key Share</h1>
+<p id="rfc.section.5.8.p.1">The TLS structure for key share is: </p>
+<pre>
+struct {
+    NamedGroup group;
+    opaque key_exchange&lt;1..2^16-1&gt;;
+} KeyShareEntry;
+
+struct {
+    KeyShareEntry client_shares&lt;0..2^16-1&gt;;
+} KeyShareClientHello;
+
+struct {
+    NamedGroup selected_group;
+} KeyShareHelloRetryRequest;
+         
+struct {
+   KeyShareEntry server_share;
+} KeyShareServerHello;
+</pre>
+<p id="rfc.section.5.8.p.2">For the CBOR encoding make the following changes: </p>
+<pre>
+keyShareEntry = {
+    secp256r1 : CompressedPointRepresentation,
+    secp384r1 : CompressedPointRepresentation,
+    secp521r1 : CompressedPointRepresentation,
+    x25519 : bstr,
+    x448 : bstr,
+    * NamedGroup : any          
+}
+
+key_share = KeyShare_ClientHello | KeyShare_HelloRetryRequest |
+        KeyShare_ServerHello
+
+KeyShare_ClientHello = [ *keyShareEntry]
+KeyShare_HelloRetryRequest = NamedGroup
+KeyShare_ServerHello = keyShareEntry
+
+        </pre>
+<h1 id="rfc.section.5.8.1">
+<a href="#rfc.section.5.8.1">5.8.1.</a> ECDHE Parameters</h1>
+<p id="rfc.section.5.8.1.p.1">The TLS structure is: </p>
+<pre>
+struct {
+    uint8 legacy_form = 4;
+    opaque X[coordinate_length];
+    opaque Y[coordinate_length];
+} UncompressedPointRepresentation;
+</pre>
+<p id="rfc.section.5.8.1.p.2">For the CBOR encoding make the following changes: </p>
+
+<ul><li>Switched to compressed points for space savings.</li></ul>
+
+<p> </p>
+<pre>
+CompressedPointReprentation = [
+    x : bstr,
+    y : bool
+]
+          </pre>
+<h1 id="rfc.section.5.9">
+<a href="#rfc.section.5.9">5.9.</a> Pre-Shared Key Exchange Modes</h1>
+<p id="rfc.section.5.9.p.1">The TLS structure is: </p>
+<pre>
+enum { psk_ke(0), psk_dhe_ke(1), (255) } PskKeyExchangeMode;
+
+struct {
+    PskKeyExchangeMode ke_modes&lt;1..255&gt;;
+} PskKeyExchangeModes;
+</pre>
+<p id="rfc.section.5.9.p.2">Changes for CBOR: </p>
+
+<ul></ul>
+
+<p> </p>
+<pre>
+pskKeyExchangeMode = ( psk_key: 0, psk_dhe_ke:1 }
+
+psk_key_exchange_modes = [ + pskKeyExchangeMode]
+        </pre>
+<h1 id="rfc.section.5.10">
+<a href="#rfc.section.5.10">5.10.</a> Early Data Indication</h1>
+<p id="rfc.section.5.10.p.1">Not used.  </p>
+<h1 id="rfc.section.5.11">
+<a href="#rfc.section.5.11">5.11.</a> Pre-Shared Key Extension</h1>
+<p id="rfc.section.5.11.p.1">The TLS structure is: </p>
+<pre>
+struct {
+    opaque identity&lt;1..2^16-1&gt;;
+    uint32 obfuscated_ticket_age;
+} PskIdentity;
+
+opaque PskBinderEntry&lt;32..255&gt;;
+
+struct {
+    PskIdentity identities&lt;7..2^16-1&gt;;
+    PskBinderEntry binders&lt;33..2^16-1&gt;;
+} OfferedPsks;
+
+struct {
+    select (Handshake.msg_type) {
+        case client_hello: OfferedPsks;
+        case server_hello: uint16 selected_identity;
+    };
+} PreSharedKeyExtension;
+</pre>
+<p id="rfc.section.5.11.p.2">The changes for CBOR are: </p>
+<pre>
+pre_shared_key = clientHello_PSK | serverHello_PSK
+
+clientHello_PSK = OfferedPsks
+
+serverHello_PSK = int
+
+OfferedPsks = [
+   identities : [ +PskIdentity ],
+   binders : bstr
+]
+
+PskIdentity = (
+    identity : bstr,
+    ? obfuscated_ticket_age : int
+)
+        </pre>
+<h1 id="rfc.section.5.12">
+<a href="#rfc.section.5.12">5.12.</a> Other Extensions</h1>
+<p id="rfc.section.5.12.p.1">TLS </p>
+<pre>
+  struct {
+    select(ClientOrServerExtension) {
+        case client:
+            CertificateType client_certificate_types&lt;1..2^8-1&gt;;
+        case server:
+            CertificateType client_certificate_type;
+   }
+} ClientCertTypeExtension;
+
+struct {
+    select(ClientOrServerExtension) {
+        case client:
+            CertificateType server_certificate_types&lt;1..2^8-1&gt;;
+        case server:
+            CertificateType server_certificate_type;
+    }
+} ServerCertTypeExtension;
+</pre>
+<p id="rfc.section.5.12.p.2">CBOR </p>
+<pre>
+clientCertType = certTypeRequest | certTypeResponse
+serverCertType = certTypeRequest | certTypeResponse
+
+certTypeRequest = [+ cerType]
+certTypeResponse = certType
+
+certType = (x509:0, rawPublicKey:1 }
+
+          </pre>
+<h1 id="rfc.section.6">
+<a href="#rfc.section.6">6.</a> Server Parameters</h1>
+<h1 id="rfc.section.6.1">
+<a href="#rfc.section.6.1">6.1.</a> Encrypted Extensions</h1>
+<p id="rfc.section.6.1.p.1">The TLS structure is: </p>
+<pre>
+struct {
+    Extension extensions&lt;0..2^16-1&gt;;
+} EncryptedExtensions;
+</pre>
+<p id="rfc.section.6.1.p.2">For CBOR: </p>
+<pre>
+EncryptedExtensions = [ * Extension ]
+        </pre>
+<h1 id="rfc.section.7">
+<a href="#rfc.section.7">7.</a> Certificate Request</h1>
+<p id="rfc.section.7.p.1">Not Used </p>
+<h1 id="rfc.section.8">
+<a href="#rfc.section.8">8.</a> Authentication Messages</h1>
+<h1 id="rfc.section.8.1">
+<a href="#rfc.section.8.1">8.1.</a> Certificate</h1>
+<p id="rfc.section.8.1.p.1">TLS </p>
+<pre>
+certificate = [
+    ? certificate_request_context : bstr,
+    certificate_list : [* CertificateEntry]
+]
+
+CertificateEntry = [
+    certificate : {
+        0 : bstr, // cert_data,
+        1 : bstr  // ASN1_subjectPublicKeyInfo
+    },
+    extensions : [* Extension]
+]
+
+        </pre>
+<h1 id="rfc.section.8.2">
+<a href="#rfc.section.8.2">8.2.</a> Certificate Verify</h1>
+<p id="rfc.section.8.2.p.1">TLS </p>
+<pre>
+struct {
+    SignatureScheme algorithm;
+    opaque signature&lt;0..2^16-1&gt;;
+} CertificateVerify;
+</pre>
+<p id="rfc.section.8.2.p.2">CBOR </p>
+<pre>
+CertificateVerify = [
+    algorithm : SignatureScheme,
+    signature : bstr
+]
+        </pre>
+<h1 id="rfc.section.8.3">
+<a href="#rfc.section.8.3">8.3.</a> Finish</h1>
+<p id="rfc.section.8.3.p.1">TLS </p>
+<pre>
+struct {
+    opaque verify_data[Hash.length];
+} Finished;
+        </pre>
+<p id="rfc.section.8.3.p.2">CBOR </p>
+<pre>
+Finished = bstr
+        </pre>
+<h1 id="rfc.section.9">
+<a href="#rfc.section.9">9.</a> Record Protocol</h1>
+<h1 id="rfc.section.9.1">
+<a href="#rfc.section.9.1">9.1.</a> Record Layer</h1>
+<p id="rfc.section.9.1.p.1">TLS </p>
+<pre>
+enum {
+    invalid(0),
+    change_cipher_spec(20),
+    alert(21),
+    handshake(22),
+    application_data(23),
+    (255)
+} ContentType;
+
+struct {
+    ContentType type;
+    ProtocolVersion legacy_record_version;
+    uint16 length;
+    opaque fragment[TLSPlaintext.length];
+} TLSPlaintext;
+</pre>
+<p id="rfc.section.9.1.p.2">CBOR </p>
+<pre>
+contentType = (
+    invalid: 0, change_cipher_spec: 20, alert:21, handshake:22,
+    application_data:23
+)
+
+TLSPlaintext = (
+    type : contentType,
+    fragment : bstr
+)
+        </pre>
+<h1 id="rfc.section.9.2">
+<a href="#rfc.section.9.2">9.2.</a> Record Payload Protection</h1>
+<p id="rfc.section.9.2.p.1">TLS </p>
+<pre>
+struct {
+    opaque content[TLSPlaintext.length];
+    ContentType type;
+    uint8 zeros[length_of_padding];
+} TLSInnerPlaintext;
+
+struct {
+    ContentType opaque_type = application_data; /* 23 */
+    ProtocolVersion legacy_record_version = 0x0303; /* TLS v1.2 */
+    uint16 length;
+    opaque encrypted_record[TLSCiphertext.length];
+} TLSCiphertext;
+</pre>
+<p id="rfc.section.9.2.p.2">CBOR </p>
+<h1 id="rfc.section.10">
+<a href="#rfc.section.10">10.</a> CBOR Slashed Version</h1>
+<p id="rfc.section.10.p.1">There are many things that the EDHOC system did that slashed down size that has not been done for the previous version of TLS.  If these changes are made then a non-trivial amount of savings can be done that might or might not be considered acceptable in this situation.  </p>
+<p id="rfc.section.10.p.2">For the puspose of making things even small we are making the following assumptions: </p>
+
+<ul class="empty">
+<li>Remove the random number strings from the system.  Since we are always going to do new ephemeral keys on both sides when the protocol is done, then the random numbers are not needed.  If new ephemeral keys are not done on both sides, then the perfect forward secrecy requirement is not met.  </li>
+<li>Trucate all HMAC values to 64-bits.  </li>
+<li>If the encrypted extensions handshake message is empty, then omit it.  </li>
+<li>In cases where a single value can be in an array, change the syntax to be either the single value or an array of values.  </li>
+<li>Change the behavior of some of the extensions by adding additional operations and changing defaults.  <ul>
+<li>Change the default value for client and server certificate type from "certificate" to "RPK" and "reference".  </li>
+<li>Change the behavior of the curves extension so that if it is omitted, then the cruve offered in the key share is assumed to be the only one supported by the client.  </li>
+</ul>
+<p> </p>
+</li>
+</ul>
+
+<p> </p>
+<h1 id="rfc.section.11">
+<a href="#rfc.section.11">11.</a> Transport with CoAP</h1>
+<p id="rfc.section.11.p.1">Transporting the messages w/ CoAP is fairly simple: </p>
+
+<ol>
+<li>Message #1 is a POST to a fixed location.  </li>
+<li>Message #2 is the response to the POST.  The message returns either Created (2.01) or a TLS Alert message with Bad Request  (4.00).  If the message is successful, then a Location-Path will be returned as part of the message.  </li>
+<li>Message #3 is a PUT to the returned location path from the above response.  </li>
+<li>Message #4 is either a TLS Alert message with Bad Request (4.00) or an empty Changed (2.04) message.  At this point the location path is deleted on the server.  </li>
+</ol>
+
+<p> </p>
+<h1 id="rfc.references">
+<a href="#rfc.references">12.</a> Informational</h1>
+<table><tbody><tr>
+<td class="reference"><b id="I-D.ietf-core-echo-request-tag">[I-D.ietf-core-echo-request-tag]</b></td>
+<td class="top">
+<a>Amsuess, C.</a>, <a>Mattsson, J.</a> and <a>G. Selander</a>, "<a href="https://tools.ietf.org/html/draft-ietf-core-echo-request-tag-03">Echo and Request-Tag</a>", Internet-Draft draft-ietf-core-echo-request-tag-03, October 2018.</td>
+</tr></tbody></table>
+<h1 id="rfc.appendix.A">
+<a href="#rfc.appendix.A">Appendix A.</a> Sample Messages</h1>
+<h1 id="rfc.appendix.A.1">
+<a href="#rfc.appendix.A.1">A.1.</a> Standard TLS for X25519 and Ed25519</h1>
+<p id="rfc.section.A.1.p.1">The size of messge #1 is 97 bytes </p>
+<pre>
+22,
+&lt;&lt; 1,
+   [
+   h'0011223344556677889900112233445566778899001122334455
+   667788990011',  / random /
+      [ h'1304' / TLS_AES_128_CCM_SHA256 ], / cipher suites /
+      [ 51, [ 4 / x25519 /, h'00112233445566778899001122334455
+      66778899001122334455667788990011' ],
+        13, [ h'0807' / Ed2215 / ],  / signature algorithms /
+        10, [ 4 / secp256r1 / ],
+        19, [ 1 ] / client_cert_type /,
+        20, [ 1 ] / server_cert_type /,
+      ]
+   ]
+&gt;&gt;
+
+          </pre>
+<p class="figure">Message #1</p>
+<p id="rfc.section.A.1.p.2">The size of message #2 is 262 bytes.  If you directly encode what is below it will be 16 bytes short as there is no provision in the CDDL for the 16 bytes of the MAC appended to the end of the encrypted data.  </p>
+<pre>
+22,
+&lt;&lt; 
+   2,
+   [
+   h'00112233445566778899001122334455667788990011223344
+   55667788990011',  / random /
+      h'1304', / cipher suite /
+      [
+      51, [ 4 / x25519 /,  h'001122334455667788990011223344
+      5566778899001122334455667788990011' ] / key share /
+      ]
+   ]
+&gt;&gt;,
+
+23,
+&lt;&lt;
+   4,
+   [ 19, 1, / client_cert_type /
+     20, 1  / server_cert_type /
+   ],
+   11,
+   [
+      [ 1 / rpk /,
+      h'1122334455667788990011223344556677889900112233445566
+      778899001122334455667788990011223344'
+      ]
+   ],
+   12,
+   [
+      h'0807',
+      h'1122334455667788990011223344556677889900112233445566
+      778899001122334455667788990011223344556677889900112233
+      4455667788990011223344'
+   ],
+   13,
+   h'1122334455667788990011223344556677889900112233445566
+   778899001122'
+&gt;&gt;
+</pre>
+<p class="figure">Message #2</p>
+<p id="rfc.section.A.1.p.3">Size of message #3 is 175 bytes </p>
+<pre>
+23,
+&lt;&lt;
+   11,
+   [
+      [ 1 / rpk /,
+      h'11223344556677889900112233445566778899001122334455
+      66778899001122334455667788990011223344'
+      ]
+   ],
+   12,
+   [
+      h'0807',
+      h'112233445566778899001122334455667788990011223344
+      55667788990011223344556677889900112233445566778899
+      001122334455667788990011223344'
+   ],
+   13,
+   h'1122334455667788990011223344556677889900112233445566
+   778899001122'
+&gt;&gt;
+</pre>
+<p class="figure">Message #3</p>
+<h1 id="rfc.appendix.A.2">
+<a href="#rfc.appendix.A.2">A.2.</a> Pre-shared key for authentication w/ ephemeral DH</h1>
+<p id="rfc.section.A.2.p.1">The size of messge #1 is 97 bytes </p>
+<pre>
+22,
+&lt;&lt; 1,
+   [
+   h'001122334455667788990011223344556677889
+   9001122334455667788990011',  / random /
+      [ h'1304' / TLS_AES_128_CCM_SHA256 ], / cipher suites /
+      [ 51, [ 4 / x25519 /, h'0011223344556677889900112233445
+      566778899001122334455667788990011' ],
+        13, [ h'0807' / Ed2215 / ],  / signature algorithms /
+        10, [ 4 / secp256r1 / ],
+        19, [ 1 ] / client_cert_type /,
+        20, [ 1 ] / server_cert_type /,
+      ]
+   ]
+&gt;&gt;
+
+          </pre>
+<p class="figure">Message #1</p>
+<p id="rfc.section.A.2.p.2">The size of message #2 is 262 bytes.  If you directly encode what is below it will be 16 bytes short as there is no provision in the CDDL for the 16 bytes of the MAC appended to the end of the encrypted data.  </p>
+<pre>
+22,
+&lt;&lt; 
+   2,
+   [
+   h'001122334455667788990011223344556677889900112233445
+   5667788990011',  / random /
+      h'1304', / cipher suite /
+      [
+      51, [ 4 / x25519 /,  h'00112233445566778899001122
+      33445566778899001122334455667788990011' ] / key share /
+      ]
+   ]
+&gt;&gt;,
+
+23,
+&lt;&lt;
+   4,
+   [ 19, 1, / client_cert_type /
+     20, 1  / server_cert_type /
+   ],
+   11,
+   [
+      [ 1 / rpk /,
+      h'1122334455667788990011223344556677889900112233445566
+      778899001122334455667788990011223344'
+      ]
+   ],
+   12,
+   [
+      h'0807',
+      h'1122334455667788990011223344556677889900112233445566
+      7788990011223344556677889900112233445566778899001122
+      334455667788990011223344'
+   ],
+   13,
+   h'112233445566778899001122334455667788990011223344556677
+     8899001122'
+&gt;&gt;
+</pre>
+<p class="figure">Message #2</p>
+<p id="rfc.section.A.2.p.3">Size of message #3 is 175 bytes </p>
+<pre>
+23,
+&lt;&lt;
+   11,
+   [
+      [ 1 / rpk /,
+        h'11223344556677889900112233445566778899001122334455
+          66778899001122334455667788990011223344'
+      ]
+   ],
+   12,
+   [
+      h'0807',
+      h'1122334455667788990011223344556677889900112233445566
+       77889900112233445566778899001122334455667788990011223
+       34455667788990011223344'
+   ],
+   13,
+   h'1122334455667788990011223344556677889900112233445566778
+     899001122'
+&gt;&gt;
+</pre>
+<p class="figure">Message #3</p>
+<h1 id="rfc.appendix.A.3">
+<a href="#rfc.appendix.A.3">A.3.</a> Stripped TLS w/ Ed25519</h1>
+<p id="rfc.section.A.3.p.1">The size of messge #1 is 47 bytes </p>
+<pre>
+22,
+&lt;&lt; 1,
+   [
+      1 / TLS_AES_128_CCM_SHA256_64 /,     / cipher suites /
+      [ 1, [ 4 / x25519 /, h'00112233445566778899001122334455
+                             66778899001122334455667788990011' ],
+        2, 99 / Ed2215 /                   / signature algorithms /
+      ]
+   ]
+&gt;&gt;
+
+          </pre>
+<p class="figure">Message #1</p>
+<p id="rfc.section.A.3.p.2">The size of message #2 is 146 bytes.  The encryption authentication code is added as a separate at the end of the encrypted handshake block.  </p>
+<pre>
+22,
+&lt;&lt; 
+   2,
+   [
+      1 / TLS_AES_128_CCM_SHA256_64 /,           / cipher suite /
+      [
+      1, [ 4 / x25519 /,  h'001122334455667788990011223344
+            5566778899001122334455667788990011' ] / key share /
+      ]
+   ]
+&gt;&gt;,
+
+23,
+&lt;&lt;
+   11,
+   [
+      [ 9 / reference /,
+        h'1122334455'
+      ]  / certificate /
+   ],
+   12,
+   [
+      99,
+      h'11223344556677889900112233445566778899001122
+      3344556677889900112233445566778899001122334455
+      66778899001122334455667788990011223344'
+      / signature /
+   ], / certificate verify /
+   13,
+   h'1122334455667788', / finish /
+   h'11223344556677'  / encryption authentication code /   
+&gt;&gt;
+</pre>
+<p class="figure">Message #2</p>
+<p id="rfc.section.A.3.p.3">Size of message #3 is 102 bytes </p>
+<pre>
+23,
+&lt;&lt;
+   11,
+   [
+      [ 9 / reference /,
+        h'1122334455'
+      ]
+   ],  / certificate /
+   12,
+   [
+      99,
+      h'11223344556677889900112233445566778899001122
+        33445566778899001122334455667788990011223344
+        5566778899001122334455667788990011223344'
+   ], / certificate verify /
+   13,
+   h'1122334455667788', / finish /
+   h'1122334455667788'  / encryption authentication code /   
+&gt;&gt;
+</pre>
+<p class="figure">Message #3</p>
+<h1 id="rfc.appendix.A.4">
+<a href="#rfc.appendix.A.4">A.4.</a> Stripped TLS w/ PSK</h1>
+<p id="rfc.section.A.4.p.1">The size of messge #1 is 65 bytes </p>
+<pre>
+22,
+&lt;&lt; 1,
+   [
+      1,                  / cipher suites /
+      [ 1, [ 4 / x25519 /, h'001122334455667788990011
+                    2233445566778899001122334455667788990011' ],
+        2, 99,         / signature algorithms /
+        6, [ h'0102030405', h'0102030405060708' ]
+      ]
+   ]
+&gt;&gt;
+
+          </pre>
+<p class="figure">Message #1</p>
+<p id="rfc.section.A.4.p.2">The size of message #2 is 59 bytes.  If you directly encode what is below it will be 16 bytes short as there is no provision in the CDDL for the 16 bytes of the MAC appended to the end of the encrypted data.  </p>
+<pre>
+22,
+&lt;&lt; 
+   2,
+   [
+      1, / cipher suite /
+      [
+        1, [ 4 / x25519 /,  h'0011223344556677889900112233445
+             566778899001122334455667788990011' ], / key share /
+        6, 1
+      ]
+  ]
+&gt;&gt;,
+
+23,
+&lt;&lt;
+   13,
+   h'1122334455667788'
+&gt;&gt;
+</pre>
+<p class="figure">Message #2</p>
+<p id="rfc.section.A.4.p.3">Size of message #3 is 12 bytes </p>
+<pre>
+23,
+&lt;&lt;
+   13,
+   h'1122334455667788'
+&gt;&gt;
+</pre>
+<p class="figure">Message #3</p>
+<h1 id="rfc.appendix.B">
+<a href="#rfc.appendix.B">Appendix B.</a> Open ideas for ways to make things smaller</h1>
+<p id="rfc.section.B.p.1">The following things can still be considered for shrinking things: </p>
+
+<ul>
+<li>Make the random values optional.  This would kill 66 bytes from the first and second messages.</li>
+<li>Think of a way to shorten the SKI encoding of the raw public key.</li>
+<li>Decode to re-encode the signature and cipher suite numbers</li>
+<li>Change some of the default values.  For example we could change to RPK being the default certificate type.</li>
+<li>Create a HMAC cipher suite which truncates the output for doing finish messages.  This is not unusual for the world of IoT and thus should be considered.  Halving the length of this saves 17 bytes in message 2 and 3.  </li>
+</ul>
+
+<p> </p>
+<h1 id="rfc.appendix.C">
+<a href="#rfc.appendix.C">Appendix C.</a> EDHOC issues that worry me</h1>
+<p id="rfc.section.C.p.1">I still need to actually read the current document.  From a quick glance through I have the following issues: </p>
+
+<ul>
+<li>It is limited to four cipher suites of which only two are globally defined.</li>
+<li>Need to validate that P-256 can do key agreement correctly with only an X coordinate.</li>
+</ul>
+
+<p> </p>
+<h1 id="rfc.authors"><a href="#rfc.authors">Author's Address</a></h1>
+<div class="avoidbreak">
+  <address class="vcard">
+	<span class="vcardline">
+	  <span class="fn">Jim Schaad</span> 
+	  <span class="n hidden">
+		<span class="family-name">Schaad</span>
+	  </span>
+	</span>
+	<span class="org vcardline"></span>
+	<span class="adr">
+	  
+	  <span class="vcardline">
+		<span class="locality"></span> 
+		<span class="region"></span>
+		<span class="code"></span>
+	  </span>
+	  <span class="country-name vcardline"></span>
+	</span>
+	<span class="vcardline">EMail: <a href="mailto:ietf@augustcellars.com">ietf@augustcellars.com</a></span>
+
+  </address>
+</div>
+
+</body>
+</html>

@@ -1,0 +1,514 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" 
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+
+<html lang="en" xmlns="http://www.w3.org/1999/xhtml" xml:lang="en">
+<head profile="http://www.w3.org/2006/03/hcard http://dublincore.org/documents/2008/08/04/dc-html/">
+  <meta http-equiv="Content-Type" content="text/html; charset=us-ascii" />
+
+  <title>Use of a CWT identifier as a Confirmation Method</title>
+
+  
+<style type="text/css">/*<![CDATA[*/
+
+body {
+  font: 16px "Helvetica Neue","Open Sans",Helvetica,Calibri,sans-serif;
+  color: #333;
+  font-size-adjust: 0.5;
+  line-height: 24px;
+  margin: 75px auto;
+  max-width: 624px;
+  padding: 0 5px;
+}
+
+.title, .filename, h1, h2, h3, h4, h5 {
+  font: 16px "Roboto Condensed","Helvetica Neue","Open Sans",Helvetica,Calibri,sans-serif;
+  font-size-adjust: 0.5;
+  font-weight: bold;
+  color: #333;
+  line-height: 100%;
+  margin: 1.2em 0 0.3em;
+}
+.title, #rfc\.title h1 { font-size: 32px; }
+h1, section h1, h2, section h2, section h3, nav h2 { font-size: 20px; }
+h3, section h4, h4, section h5 { font-size: 16px; }
+h1 a[href], h2 a[href], h3 a[href], h4 a[href] {
+  color: #333;
+}
+
+table {
+  margin-left: 0em;
+  border-collapse: collapse;
+}
+th {
+  text-align: left;
+  border-bottom: 2px solid #ddd;
+}
+td {
+  border-top: 1px solid #ddd;
+  vertical-align: top;
+}
+tr:nth-child(2n+1) > td,
+tr:nth-child(2n+1) > th {
+  background-color: #f9f9f9;
+}
+td.reference {
+  max-width: 200px;
+  border-top: none;
+  padding-right: 1em;
+}
+.right {
+  text-align: right;
+}
+
+
+table.header, table#rfc\.headerblock {
+  width: 100%;
+}
+table.header td, table#rfc\.headerblock td {
+  border: none;
+  background-color: transparent;
+  color: black;
+  padding: 0;
+}
+.filename {
+  display: block;
+  color: rgb(119, 119, 119);
+  font-size: 20px;
+  font-weight: normal;
+  line-height: 100%;
+  margin: 10px 0 32px;
+}
+#rfc\.abstract+p, #rfc\.abstract p {
+  font-size: 20px;
+  line-height: 28px;
+}
+
+samp, tt, code, pre, span.tt {
+  font: 13.5px Consolas, monospace;
+  font-size-adjust: none;
+}
+pre {
+  background-color: #eee;
+  border: 1px solid #ddd;
+  overflow-x: auto;
+  padding: 5px;
+  margin: 5px;
+}
+.figure, caption {
+  font-style: italic;
+  margin: 0 1.5em;
+  text-align: left;
+}
+
+address {
+  margin: 16px 2px;
+  line-height: 20px;
+}
+.vcard {
+  font-style: normal;
+}
+.vcardline {
+  display: block;
+}
+.vcardline .fn, address b {
+  font-weight: normal;
+}
+.vcardline .hidden {
+  display: none;
+}
+
+dl {
+  margin-left: 1em;
+}
+dl.dl-horizontal: {
+  margin-left: 0;
+}
+dl > dt {
+  float: left;
+  margin-right: 1em;
+}
+dl.nohang > dt {
+  float: none;
+}
+dl > dd {
+  margin-bottom: .5em;
+}
+dl.compact > dd {
+  margin-bottom: 0em;
+}
+dl > dd > dl {
+  margin-top: 0.5em;
+  margin-bottom: 0em;
+}
+ul.empty {
+  list-style-type: none;
+}
+ul.empty li {
+  margin-top: .5em;
+}
+
+hr {
+  border: 0;
+  border-top: 1px solid #eee;
+}
+hr.noprint {
+  display: none;
+}
+
+a {
+  text-decoration: none;
+}
+a[href] {
+  color: #2a6496;
+}
+a[href]:hover {
+  background-color: #eee;
+}
+
+p, ol, ul, li {
+  padding: 0;
+}
+p {
+  margin: 0.5em 0;
+}
+ol, ul {
+  margin: 0.2em 0 0.2em 2em;
+}
+li {
+  margin: 0.2em 0;
+}
+address {
+  font-style: normal;
+}
+
+ul.toc ul {
+  margin: 0 0 0 2em;
+}
+ul.toc li {
+  list-style: none;
+  margin: 0;
+}
+
+@media screen and (min-width: 924px) {
+  body {
+    padding-right: 350px;
+  }
+  body>ul.toc, body>#rfc\.toc {
+    position: fixed;
+    bottom: 0;
+    right: 0;
+    right: calc(50vw - 500px);
+    width: 300px;
+    z-index: 1;
+    overflow: auto;
+    overscroll-behavior: contain;
+  }
+  body>#rfc\.toc {
+    top: 55px;
+  }
+  body>ul.toc {
+    top: 100px;
+  }
+
+  ul.toc {
+    margin: 0 0 0 4px;
+    font-size: 12px;
+    line-height: 20px;
+  }
+  ul.toc ul {
+    margin-left: 1.2em;
+  }
+}
+
+.github-fork-ribbon-wrapper {
+  display: none;
+}
+@media screen and (min-width: 800px) {
+  /* "Fork me on GitHub" CSS ribbon based on
+   * https://github.com/simonwhitaker/github-fork-ribbon-css
+   */
+  .github-fork-ribbon {
+    position: absolute;
+    padding: 2px 0;
+    background-color: #a00;
+    background-image: linear-gradient(to bottom, rgba(0, 0, 0, 0), rgba(0, 0, 0, 0.15));
+    box-shadow: 0 2px 3px 0 rgba(0, 0, 0, 0.5);
+    font: 700 12px "Helvetica Neue", Helvetica, Arial, sans-serif;
+
+    pointer-events: auto;
+
+    top: 38px;
+    right: -45px;
+
+    transform: rotate(45deg);
+  }
+
+  .github-fork-ribbon a[href],
+  .github-fork-ribbon a[href]:hover {
+    color: #fff;
+    background-color: transparent;
+    text-decoration: none;
+    text-shadow: 0 -1px rgba(0, 0, 0, 0.5);
+    text-align: center;
+
+    width: 190px;
+    line-height: 18px;
+
+    display: inline-block;
+    padding: 2px 0;
+
+    border: 1.5px dotted #fff;
+    border-color: rgba(255, 255, 255, 0.6);
+  }
+
+  .github-fork-ribbon-wrapper {
+    display: block;
+    width: 130px;
+    height: 130px;
+    position: absolute;
+    overflow: hidden;
+    top: 0; right: 0;
+    z-index: 2;
+    pointer-events: none;
+  }
+}
+@media screen and (min-width: 1000px) {
+  .github-fork-ribbon-wrapper {
+    position: fixed;
+  }
+  /*]]>*/</style>
+  <meta name="viewport" content="initial-scale=1.0">
+
+
+  <link href="#rfc.toc" rel="Contents">
+<link href="#rfc.section.1" rel="Chapter" title="1 Introduction">
+<link href="#rfc.section.1.1" rel="Chapter" title="1.1 Conventions Used in This Document">
+<link href="#rfc.section.2" rel="Chapter" title="2 Terminology">
+<link href="#rfc.section.3" rel="Chapter" title="3 CWT Id Confirmation Method">
+<link href="#rfc.section.4" rel="Chapter" title="4 CWT Id in AS Response">
+<link href="#rfc.section.5" rel="Chapter" title="5 Processing Rules for the Issuer of a CWT Id Confirmation Method">
+<link href="#rfc.section.6" rel="Chapter" title="6 Processing Rules for the CWT Id Confirmation Method">
+<link href="#rfc.section.7" rel="Chapter" title="7 Security Considerations">
+<link href="#rfc.section.8" rel="Chapter" title="8 IANA Considerations">
+<link href="#rfc.references" rel="Chapter" title="9 Normative References">
+<link href="#rfc.authors" rel="Chapter">
+
+
+  <meta name="generator" content="xml2rfc version 2.15.4 - https://tools.ietf.org/tools/xml2rfc" />
+  <link rel="schema.dct" href="http://purl.org/dc/terms/" />
+
+  <meta name="dct.creator" content="Schaad, J." />
+  <meta name="dct.identifier" content="urn:ietf:id:draft-schaad-cnf-cwt-id-00" />
+  <meta name="dct.issued" scheme="ISO8601" content="2019-17" />
+  <meta name="dct.abstract" content="TBD " />
+  <meta name="description" content="TBD " />
+
+</head>
+
+<body>
+
+  <table class="header">
+    <tbody>
+    
+    	<tr>
+<td class="left">Network Working Group</td>
+<td class="right">J. Schaad</td>
+</tr>
+<tr>
+<td class="left">Internet-Draft</td>
+<td class="right">August Cellars</td>
+</tr>
+<tr>
+<td class="left">Intended status: Experimental</td>
+<td class="right">January 17, 2019</td>
+</tr>
+<tr>
+<td class="left">Expires: July 21, 2019</td>
+<td class="right"></td>
+</tr>
+
+    	
+    </tbody>
+  </table>
+
+  <p class="title">Use of a CWT identifier as a Confirmation Method<br />
+  <span class="filename">draft-schaad-cnf-cwt-id-00</span></p>
+  
+  <h1 id="rfc.abstract"><a href="#rfc.abstract">Abstract</a></h1>
+<p>TBD </p>
+<h1 id="rfc.status"><a href="#rfc.status">Status of This Memo</a></h1>
+<p>This Internet-Draft is submitted in full conformance with the provisions of BCP 78 and BCP 79.</p>
+<p>Internet-Drafts are working documents of the Internet Engineering Task Force (IETF).  Note that other groups may also distribute working documents as Internet-Drafts.  The list of current Internet-Drafts is at https://datatracker.ietf.org/drafts/current/.</p>
+<p>Internet-Drafts are draft documents valid for a maximum of six months and may be updated, replaced, or obsoleted by other documents at any time.  It is inappropriate to use Internet-Drafts as reference material or to cite them other than as "work in progress."</p>
+<p>This Internet-Draft will expire on July 21, 2019.</p>
+<h1 id="rfc.copyrightnotice"><a href="#rfc.copyrightnotice">Copyright Notice</a></h1>
+<p>Copyright (c) 2019 IETF Trust and the persons identified as the document authors.  All rights reserved.</p>
+<p>This document is subject to BCP 78 and the IETF Trust's Legal Provisions Relating to IETF Documents (https://trustee.ietf.org/license-info) in effect on the date of publication of this document.  Please review these documents carefully, as they describe your rights and restrictions with respect to this document.  Code Components extracted from this document must include Simplified BSD License text as described in Section 4.e of the Trust Legal Provisions and are provided without warranty as described in the Simplified BSD License.</p>
+
+  
+  <hr class="noprint" />
+  <h1 class="np" id="rfc.toc"><a href="#rfc.toc">Table of Contents</a></h1>
+  <ul class="toc">
+
+  	<li>1.   <a href="#rfc.section.1">Introduction</a>
+</li>
+<ul><li>1.1.   <a href="#rfc.section.1.1">Conventions Used in This Document</a>
+</li>
+</ul><li>2.   <a href="#rfc.section.2">Terminology</a>
+</li>
+<li>3.   <a href="#rfc.section.3">CWT Id Confirmation Method</a>
+</li>
+<li>4.   <a href="#rfc.section.4">CWT Id in AS Response</a>
+</li>
+<li>5.   <a href="#rfc.section.5">Processing Rules for the Issuer of a CWT Id Confirmation Method</a>
+</li>
+<li>6.   <a href="#rfc.section.6">Processing Rules for the CWT Id Confirmation Method</a>
+</li>
+<li>7.   <a href="#rfc.section.7">Security Considerations</a>
+</li>
+<li>8.   <a href="#rfc.section.8">IANA Considerations</a>
+</li>
+<li>9.   <a href="#rfc.references">Normative References</a>
+</li>
+<li><a href="#rfc.authors">Author's Address</a>
+</li>
+
+
+  </ul>
+
+  <h1 id="rfc.section.1">
+<a href="#rfc.section.1">1.</a> Introduction</h1>
+<p id="rfc.section.1.p.1">In many cases an authorization in the form of a COSE Web Token (CWT) <a href="#RFC8392" class="xref">[RFC8392]</a> will be issued in the ACE OAuth <a href="#I-D.ietf-ace-oauth-authz" class="xref">[I-D.ietf-ace-oauth-authz]</a> framework with a minimal set of privileges and a Proof-of-Possession claim <a href="#I-D.ietf-ace-cwt-proof-of-possession" class="xref">[I-D.ietf-ace-cwt-proof-of-possession]</a>.  It may then become necessary to issue a new token for a shorter period with more capabilities, but use the same information for validation.  In these cases it makes sense to issue a new authorization token which refers the the first token to provide the additional capabilities.  This document defines a new confirmation type that allows this type of referencing to be done.  </p>
+<p id="rfc.section.1.p.2">This differs from the refresh token in that the new token will be limited to the duration of the existing CWT, while a new POP CWT would be issued when using a refresh token.  </p>
+<h1 id="rfc.section.1.1">
+<a href="#rfc.section.1.1">1.1.</a> <a href="#MUSTS" id="MUSTS">Conventions Used in This Document</a>
+</h1>
+<p id="rfc.section.1.1.p.1">The key words "MUST", "MUST NOT", "REQUIRED", "SHALL", "SHALL NOT", "SHOULD", "SHOULD NOT", "RECOMMENDED", "NOT RECOMMENDED", "MAY", and "OPTIONAL" in this document are to be interpreted as described in BCP 14 <a href="#RFC2119" class="xref">[RFC2119]</a> <a href="#RFC8174" class="xref">[RFC8174]</a> when, and only when, they appear in all capitals, as shown here.  </p>
+<h1 id="rfc.section.2">
+<a href="#rfc.section.2">2.</a> Terminology</h1>
+<p></p>
+
+<ul>
+<li>"Relying Party" is used in this document to refer to the party which is relying on the contents of a CWT in order to make a security decision.  In other OAuth documents, this is normally referred to as the XXXXXX.  </li>
+<li>"Referenced CWT" is used to denote the CWT which is referred to or referenced by a referencing CWT.  The referenced CWT has a confirmation type with the POP keying information in it.  </li>
+<li>"Referencing CWT" is used to denote the CWT which is making a reference to a second CWT.  The referencing CWT contains the confirmation type defined in this document.  </li>
+</ul>
+
+<p> </p>
+<h1 id="rfc.section.3">
+<a href="#rfc.section.3">3.</a> CWT Id Confirmation Method</h1>
+<p id="rfc.section.3.p.1">The CWT Id confirmation method is identified by TBD1 in the 'cnf' element (defined in <a href="#I-D.ietf-ace-cwt-proof-of-possession" class="xref">[I-D.ietf-ace-cwt-proof-of-possession]</a>.  For use in documentation the string value of 'cwtid' is to be used to refer to this confirmation type.  </p>
+<p id="rfc.section.3.p.2">The CWT Id confirmation method uses the type of CBOR map and has the following fields: </p>
+<p></p>
+
+<ul>
+<li>Issuer is an optional field in the map.  If present the issuer field contains the 'iss' field of CWT which is being referenced.  If absent, the issuer is the same entity which issued the referencing CWT.  When encoded, this field uses TBD2 as the map key.  </li>
+<li>CWT Id is a required field in the map.  The field contains the 'cwtid' field of the referenced CWT.  When encoded, this field uses TBD3 as the map key.  </li>
+</ul>
+
+<p> </p>
+<p id="rfc.section.3.p.4">An example of what this would look like is: </p>
+<pre>
+/ cnf /: {
+    / cwtid /: 'CWTID 1234',
+    / iss /: "Entry-Level AS"
+}
+        </pre>
+<h1 id="rfc.section.4">
+<a href="#rfc.section.4">4.</a> CWT Id in AS Response</h1>
+<p id="rfc.section.4.p.1">Since the CWT Id is currently only provided to the RS as part of the token, for an AS which supports this option the CWT Id additionally needs to be provided to the Client.  This document therefore defines two new fields to go into C-AS response messages: </p>
+
+<ul class="empty">
+<li>"iss" provides the issuer name of the CWT.  This field is only present for an AS which would allow a second AS to refer to the CWT.  </li>
+<li>"cwtid" contains the CWT Id for the issued token.  </li>
+</ul>
+
+<p> </p>
+<h1 id="rfc.section.5">
+<a href="#rfc.section.5">5.</a> Processing Rules for the Issuer of a CWT Id Confirmation Method</h1>
+<p id="rfc.section.5.p.1">When an AS  is going to issue a CWT it MUST perform the following steps or their equivalent: </p>
+<p></p>
+
+<ol>
+<li>If the issued CWT will refer to a CWT issued by a different AS, the issuing AS MUST be configured to permit this.  </li>
+<li>The AS MUST validate that the entity for which this CWT is being issued for is the same entity that is the subject of the referenced CWT.  This can be done by causing the client to perform a POP operation with the referenced CWTs POP key information or by querying the AS which issued the referenced CWT.  If the same AS is being used for both CWTs, then the AS can consult a database of clients and CWTs to check for identity matching.  </li>
+<li>The issued CWT should refer to the original POP CWT.  The chain of trust SHOULD NOT be transitive through another CWT.  </li>
+</ol>
+
+<p> </p>
+<h1 id="rfc.section.6">
+<a href="#rfc.section.6">6.</a> Processing Rules for the CWT Id Confirmation Method</h1>
+<p id="rfc.section.6.p.1">When a relying party receives a referencing CWT it MUST perform the following steps or their equivalent as part of making a security decision: </p>
+<p></p>
+
+<ol>
+<li>The referencing CWT MUST have the authentication checked on it.  If the authentication fails, the CWT MUST be rejected.  </li>
+<li>If the CWT Id confirmation type contains an issuer field, configuration information MUST be checked that the referencing CWT issuer is permitted to use the referenced CWT issuer.  If the reference is not permitted, then the CWT MUST be rejected.  </li>
+<li>If the referenced CWT is expired, the referencing CWT MUST be rejected.  </li>
+<li>The claims in the referenced CWT are copied from the referenced CWT to the referencing CWT if the claim does not exist in the referencing CWT.  </li>
+<li>The modified CWT is then processed in a normal manner.  </li>
+</ol>
+
+<p> </p>
+<h1 id="rfc.section.7">
+<a href="#rfc.section.7">7.</a> Security Considerations</h1>
+<p id="rfc.section.7.p.1">As the security of the set of CWTs is going rest on the underlying POP CWT, loss of the key will allow any CWT which references the orignal CWT to be used by a third party.  All entities which have the secret portion of the key need to protect that portion of the key.  </p>
+<p id="rfc.section.7.p.2">The use of this feature assumes a specific model of evaluating the rules for access control.  Specifically, it assumes that if there are multiple access tokens, satisfying the conditions for any of the tokens means that access is going to be granted.  This model is in contrast to one where if any of the access tokens was a deny, then access to to the resource would be denied.  </p>
+<h1 id="rfc.section.8">
+<a href="#rfc.section.8">8.</a> IANA Considerations</h1>
+<p id="rfc.section.8.p.1">There are some items that need to be registered.  Figure out what they are and put them here.  </p>
+<h1 id="rfc.references">
+<a href="#rfc.references">9.</a> Normative References</h1>
+<table><tbody>
+<tr>
+<td class="reference"><b id="I-D.ietf-ace-cwt-proof-of-possession">[I-D.ietf-ace-cwt-proof-of-possession]</b></td>
+<td class="top">
+<a>Jones, M.</a>, <a>Seitz, L.</a>, <a>Selander, G.</a>, <a>Erdtman, S.</a> and <a>H. Tschofenig</a>, "<a href="https://tools.ietf.org/html/draft-ietf-ace-cwt-proof-of-possession-05">Proof-of-Possession Key Semantics for CBOR Web Tokens (CWTs)</a>", Internet-Draft draft-ietf-ace-cwt-proof-of-possession-05, November 2018.</td>
+</tr>
+<tr>
+<td class="reference"><b id="I-D.ietf-ace-oauth-authz">[I-D.ietf-ace-oauth-authz]</b></td>
+<td class="top">
+<a>Seitz, L.</a>, <a>Selander, G.</a>, <a>Wahlstroem, E.</a>, <a>Erdtman, S.</a> and <a>H. Tschofenig</a>, "<a href="https://tools.ietf.org/html/draft-ietf-ace-oauth-authz-17">Authentication and Authorization for Constrained Environments (ACE) using the OAuth 2.0 Framework (ACE-OAuth)</a>", Internet-Draft draft-ietf-ace-oauth-authz-17, November 2018.</td>
+</tr>
+<tr>
+<td class="reference"><b id="RFC2119">[RFC2119]</b></td>
+<td class="top">
+<a>Bradner, S.</a>, "<a href="https://tools.ietf.org/html/rfc2119">Key words for use in RFCs to Indicate Requirement Levels</a>", BCP 14, RFC 2119, DOI 10.17487/RFC2119, March 1997.</td>
+</tr>
+<tr>
+<td class="reference"><b id="RFC8174">[RFC8174]</b></td>
+<td class="top">
+<a>Leiba, B.</a>, "<a href="https://tools.ietf.org/html/rfc8174">Ambiguity of Uppercase vs Lowercase in RFC 2119 Key Words</a>", BCP 14, RFC 8174, DOI 10.17487/RFC8174, May 2017.</td>
+</tr>
+<tr>
+<td class="reference"><b id="RFC8392">[RFC8392]</b></td>
+<td class="top">
+<a>Jones, M.</a>, <a>Wahlstroem, E.</a>, <a>Erdtman, S.</a> and <a>H. Tschofenig</a>, "<a href="https://tools.ietf.org/html/rfc8392">CBOR Web Token (CWT)</a>", RFC 8392, DOI 10.17487/RFC8392, May 2018.</td>
+</tr>
+</tbody></table>
+<h1 id="rfc.authors"><a href="#rfc.authors">Author's Address</a></h1>
+<div class="avoidbreak">
+  <address class="vcard">
+	<span class="vcardline">
+	  <span class="fn">Jim Schaad</span> 
+	  <span class="n hidden">
+		<span class="family-name">Schaad</span>
+	  </span>
+	</span>
+	<span class="org vcardline">August Cellars</span>
+	<span class="adr">
+	  
+	  <span class="vcardline">
+		<span class="locality"></span> 
+		<span class="region"></span>
+		<span class="code"></span>
+	  </span>
+	  <span class="country-name vcardline"></span>
+	</span>
+	<span class="vcardline">EMail: <a href="mailto:ietf@augustcellars.com">ietf@augustcellars.com</a></span>
+
+  </address>
+</div>
+
+</body>
+</html>
