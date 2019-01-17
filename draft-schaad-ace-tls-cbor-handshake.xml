@@ -1,0 +1,1395 @@
+<?xml version='1.0' encoding='US-ASCII'?>
+
+<?rfc toc="yes"?>
+<?rfc symrefs='yes'?>
+<?rfc sortrefs='yes'?>
+
+<rfc docName="draft-schaad-ace-tls-cbor-handshake-latest" category="exp">
+  <front>
+    <title>TLS Handshake in CBOR</title>
+    <author fullname="Jim Schaad" initials="J." surname="Schaad">
+      <address>
+        <email>ietf@augustcellars.com</email>
+      </address>
+    </author>
+    <date/>
+    <abstract>
+      <t>
+        None
+      </t>
+    </abstract>
+  </front>
+
+  <middle>
+    <section title="Summary">
+      <t>
+        There are two measures that can be looked at when measuring how good the different options presented below are going to be.
+        <list style="symbols">
+          <t>
+            Total Number Of Bytes: The total number of bytes that are needed to perform the key establishment protocol.
+          </t>
+          <t>
+            Total Number of Messages: The total number of messages that are needed to perform the key establishment protocol.
+            This measure is going to be dependent on which of the transports is being used.
+            For UDP the sizes are going to be from 576 to 1152 in the course of normal events.
+            This means that all of the protocols being looked at can be run in three messages without any problems.
+            For 6LoWPAN L2 however, the packet size is 127 bytes which leads to many more messages needed to be used.
+            One can send approximately 80 bytes of payload in a single message, but if one is using blockwise transfer then the payloads are going to be limited to 64 bytes.
+          </t>
+        </list>
+      </t>
+
+      <t>
+        Summary of message sizes in bytes.
+      </t>
+      <texttable>
+        <ttcol/>
+        <ttcol>TLS</ttcol>
+        <ttcol>TLS</ttcol>
+        <ttcol>TLS-C</ttcol>
+        <ttcol>TLS-C</ttcol>
+        <ttcol>TLS-S</ttcol>
+        <ttcol>TLS-S</ttcol>
+        <c/>
+        <c>RPK</c><c>PSK</c>
+        <c>RPK</c><c>PSK</c>
+        <c>RPK</c><c>PSK</c>
+        <c>Message #1</c><c>122</c><c>164</c><c>97</c><c>134</c><c>47</c><c>64</c>
+        <c>Message #2</c><c>306</c><c>163</c><c>262</c><c>143</c><c>145</c><c>66</c>
+        <c>Message #3</c><c>205</c><c>72</c><c>175</c><c>54</c><c>101</c><c>21</c>
+        <c>Total</c><c>633</c><c>399</c><c>534</c><c>331</c><c>293</c><c>151</c>
+      </texttable>
+
+      <t>
+        Summary of message sizes in estimated number of messages.
+      </t>
+      
+      <texttable>
+        <ttcol/>
+        <ttcol>TLS</ttcol>
+        <ttcol>TLS</ttcol>
+        <ttcol>TLS-C</ttcol>
+        <ttcol>TLS-C</ttcol>
+        <ttcol>TLS-S</ttcol>
+        <ttcol>TLS-S</ttcol>
+        <c/>
+        <c>RPK</c><c>PSK</c>
+        <c>RPK</c><c>PSK</c>
+        <c>RPK</c><c>PSK</c>
+        <c>Message #1</c><c>2</c><c>3</c><c>2</c><c>3</c><c>1</c><c>1</c>
+        <c>Message #2</c><c>5</c><c>3</c><c>5</c><c>3</c><c>3</c><c>1</c>
+        <c>Message #3</c><c>4</c><c>1</c><c>3</c><c>1</c><c>2</c><c>1</c>
+        <c>Total</c><c>11</c><c>7</c><c>10</c><c>7</c><c>6</c><c>3</c>
+      </texttable>
+    </section>
+    
+    <section title="Handshake Protocol">
+      <t>
+        The TLS Handshake message is:
+      </t>
+<figure>
+      <artwork>
+struct {
+    HandshakeType msg_type;    /* handshake type */
+    uint24 length;             /* remaining bytes in message */
+    select (Handshake.msg_type) {
+        case client_hello:          ClientHello;
+        case server_hello:          ServerHello;
+        case end_of_early_data:     EndOfEarlyData;
+        case encrypted_extensions:  EncryptedExtensions;
+        case certificate_request:   CertificateRequest;
+        case certificate:           Certificate;
+        case certificate_verify:    CertificateVerify;
+        case finished:              Finished;
+        case new_session_ticket:    NewSessionTicket;
+        case key_update:            KeyUpdate;
+    };
+} Handshake;
+      </artwork>
+</figure>
+
+      <t>
+        For the CBOR encoding make the following changes:
+        <list style="symbols">
+          <t>Remove the length field: It is expected that this can be passed down from the record layer.</t>
+          <t>Make the message type and field be a map.</t>
+        </list>
+      </t>
+
+      <figure>
+      <artwork>
+Handshake = handshakeMessage
+
+handshakeMessage = {
+   1 : ClientHello,
+   2 : ServerHello,
+   3 : EndOfEarlyData,
+   4 : EncryptedExtensions,
+   5 : CertificateRequest,
+   6 : Certificate,
+   7 : CertificateVerify,
+   8 : Finished,
+   9 : NewSessionTicket,
+   10 : KeyUpdate
+}
+      </artwork>
+      </figure>
+
+      <t>
+        Expected space savings:
+        <list style="symbols">
+          <t>3 bytes for the length</t>
+        </list>
+      </t>
+    </section>
+
+    <section title="Client Hello">
+      <t>
+        The TLS Client Hello structure is:
+      </t>
+      <figure>
+      <artwork><![CDATA[
+uint16 ProtocolVersion;
+opaque Random[32];
+
+uint8 CipherSuite[2];    /* Cryptographic suite selector */
+
+struct {
+    ProtocolVersion legacy_version = 0x0303;    /* TLS v1.2 */
+    Random random;
+    opaque legacy_session_id<0..32>;
+    CipherSuite cipher_suites<2..2^16-2>;
+    opaque legacy_compression_methods<1..2^8-1>;
+    Extension extensions<8..2^16-1>;
+} ClientHello;
+]]></artwork>
+      </figure>
+
+  <t>
+    For the CBOR encoding make the following changes:
+    <list style="symbols">
+      <t>Remove all of the legacy items - reduction of 5 bytes + lengths?.</t>
+    </list>
+  </t>
+
+  <figure>
+<artwork>
+ClientHello = [
+    random : bstr .len 32,
+    cipher_suites : [+ int . len 1], // max 2^8-1
+    extensions : [ + Extension ]
+]
+</artwork>
+  </figure>
+
+    </section>
+
+    <section title="Server Hello">
+      <t>
+        The TLS Server Hello structure is:
+      </t>
+
+      <figure>
+      <artwork><![CDATA[
+struct {
+    ProtocolVersion legacy_version = 0x0303;    /* TLS v1.2 */
+    Random random;
+    opaque legacy_session_id_echo<0..32>;
+    CipherSuite cipher_suite;
+    uint8 legacy_compression_method = 0;
+    Extension extensions<6..2^16-1>;
+} ServerHello;
+]]></artwork>
+      </figure>
+
+<t>
+  For the CBOR encoding make the following changes:
+  <list style="symbols">
+    <t>Remove all of the legacy fields.</t>
+  </list>
+</t>
+
+<figure>
+<artwork>
+ServerHello = [
+   random : bstr .len 32
+   cipher_suite : int,
+   extensions : [ + Extension ]
+]
+</artwork>
+</figure>
+
+    </section>
+
+    <section title="Extensions">
+      <t>
+        The TLS Extenions field is:
+      </t>
+      <figure>
+      <artwork><![CDATA[
+struct {
+     ExtensionType extension_type;
+     opaque extension_data<0..2^16-1>;
+ } Extension;
+
+ enum {
+     server_name(0),                             /* RFC 6066 */
+     max_fragment_length(1),                     /* RFC 6066 */
+     status_request(5),                          /* RFC 6066 */
+     supported_groups(10),                       /* RFC 8422, 7919 */
+     signature_algorithms(13),                   /* RFC 8446 */
+     use_srtp(14),                               /* RFC 5764 */
+     heartbeat(15),                              /* RFC 6520 */
+     application_layer_protocol_negotiation(16), /* RFC 7301 */
+     signed_certificate_timestamp(18),           /* RFC 6962 */
+     client_certificate_type(19),                /* RFC 7250 */
+     server_certificate_type(20),                /* RFC 7250 */
+     padding(21),                                /* RFC 7685 */
+     pre_shared_key(41),                         /* RFC 8446 */
+     early_data(42),                             /* RFC 8446 */
+     supported_versions(43),                     /* RFC 8446 */
+     cookie(44),                                 /* RFC 8446 */
+     psk_key_exchange_modes(45),                 /* RFC 8446 */
+     certificate_authorities(47),                /* RFC 8446 */
+     oid_filters(48),                            /* RFC 8446 */
+     post_handshake_auth(49),                    /* RFC 8446 */
+     signature_algorithms_cert(50),              /* RFC 8446 */
+     key_share(51),                              /* RFC 8446 */
+     (65535)
+ } ExtensionType;
+]]>      </artwork>
+      </figure>
+      
+      <t>
+        For the CBOR encoding make the following changes:
+        <list style="symbols">
+          <t>Remove items we don't care about</t>
+          <t>Encode as a map.</t>
+        </list>
+      </t>
+
+      <figure>
+      <artwork>
+ExtensionType = (
+//  0 : ServerName,
+//  1 : max_fragment_length,
+//  5 : status_request,
+  10 : supported_groups,
+  13 : signature_algorithms,
+//  14 : use_srtp,
+//  15 : heartbeat,
+//  16 : application_layer_protocol_negoiation,
+//  18 : signed_certificate_timestamp,
+//  19 : client_certificate_type,
+//  20 : server_certificate_type,
+//  21 : padding,
+  41 : pre_shared_key,
+//  42 : early_data,
+//  43 : supported_versions,
+//  44 : cookie,
+  45 : psk_key_exchange_modes,
+//  47 : certificate_authorities,
+//  48 : oid_filters,
+//  49 : post_handshake_auth,
+//  50 : signature_algoirthms_cert,
+  51 : key_share
+)
+
+Extension = ( int, any )  
+      </artwork>
+      </figure>
+
+      <section title="Supported Versions">
+        <t>
+          Not currently used as we only have one version.
+          If absent it will be assumed to be this version.
+        </t>
+
+        <!--
+supported_verisons =
+        +int |     // client_hello
+        int        // server_hello
+        -->
+
+      </section>
+
+      <section title="Cookie">
+        <t>
+          There is no reason for this extension to be used in CoRE.
+          For the same functionality use <xref target="I-D.ietf-core-echo-request-tag"/>.
+        </t>
+
+        <!--
+            cookie = bstr
+            -->
+      </section>
+
+      <section title="Signature Algorithms">
+        <t>
+          The TLS signature algorithm structures are:
+        </t>
+
+        <figure>
+        <artwork><![CDATA[
+enum {
+    /* RSASSA-PKCS1-v1_5 algorithms */
+    rsa_pkcs1_sha256(0x0401),
+    rsa_pkcs1_sha384(0x0501),
+    rsa_pkcs1_sha512(0x0601),
+
+    /* ECDSA algorithms */
+    ecdsa_secp256r1_sha256(0x0403),
+    ecdsa_secp384r1_sha384(0x0503),
+    ecdsa_secp521r1_sha512(0x0603),
+
+    /* RSASSA-PSS algorithms with public key OID rsaEncryption */
+    rsa_pss_rsae_sha256(0x0804),
+    rsa_pss_rsae_sha384(0x0805),
+    rsa_pss_rsae_sha512(0x0806),
+
+    /* EdDSA algorithms */
+    ed25519(0x0807),
+    ed448(0x0808),
+
+    /* RSASSA-PSS algorithms with public key OID RSASSA-PSS */
+    rsa_pss_pss_sha256(0x0809),
+    rsa_pss_pss_sha384(0x080a),
+    rsa_pss_pss_sha512(0x080b),
+
+    /* Legacy algorithms */
+    rsa_pkcs1_sha1(0x0201),
+    ecdsa_sha1(0x0203),
+
+    /* Reserved Code Points */
+    private_use(0xFE00..0xFFFF),
+    (0xFFFF)
+} SignatureScheme;
+
+struct {
+    SignatureScheme supported_signature_algorithms<2..2^16-2>;
+} SignatureSchemeList;
+]]></artwork>
+        </figure>
+        
+        <t>
+          One of the differences that may need to be dealt with at this point is the question of keeping the same enumeration as TLS uses or if the enumeration should be changed.
+          For this document the same enumeration is being kept.
+          TLS uses the current two byte format because it separates the hash algorithm from the public key algorithms.
+          For a single algorithm this ends up being 3 bytes for CBOR and 4 bytes for TLS.
+          Each additional algorithm adds 2 bytes until you get to 12 algorithms.
+          If one switched to using integer values from the COSE tables, then one ends up with the same byte count.
+        </t>
+
+        <t>
+          For the CBOR encoding make the following changes:
+          <list style="symbols">
+            <t>None</t>
+          </list>
+        </t>
+
+        <artwork>
+          signature_algorithms = bstr
+        </artwork>
+      </section>
+
+      <section title="Certificate Authorities">
+        <t>
+          Not used.
+        </t>
+        <!--
+            certificate_authorities = [ + bstr ] // array of opaques
+            -->
+      </section>
+
+      <section title="OID Filters">
+        <t>
+          Not used.
+        </t>
+        <!--
+oid_filters = [ * oid_filter ]
+oid_filter = [
+   certificate_extension_oid : bstr,
+   certificate_extension_values : bstr
+   ]
+   -->
+      </section>
+
+      <section title="Post-Handshake Client Authentication">
+        <t>
+          Not used.
+        </t>
+        <!--
+            post_handshake_auth = nil
+            -->
+      </section>
+
+      <section title="Supported Groups">
+        <t>
+          The TLS structure is:
+        </t>
+
+        <figure>
+        <artwork><![CDATA[
+enum {
+
+    /* Elliptic Curve Groups (ECDHE) */
+    secp256r1(0x0017), secp384r1(0x0018), secp521r1(0x0019),
+    x25519(0x001D), x448(0x001E),
+
+    /* Finite Field Groups (DHE) */
+    ffdhe2048(0x0100), ffdhe3072(0x0101), ffdhe4096(0x0102),
+    ffdhe6144(0x0103), ffdhe8192(0x0104),
+
+    /* Reserved Code Points */
+    ffdhe_private_use(0x01FC..0x01FF),
+    ecdhe_private_use(0xFE00..0xFEFF),
+    (0xFFFF)
+} NamedGroup;
+
+struct {
+    NamedGroup named_group_list<2..2^16-1>;
+} NamedGroupList;
+]]></artwork>
+        </figure>
+
+        <t>
+          It makes more sense to change the enumeration from that used by TLS to the COSE EC curve registry as those values are only single byte values and are small.
+          One implication is that all of the Finite Field Groups are dropped, but this should not be a problem.
+          This means a 2 byte value for a single curve in the CBOR version rather than a 4 byte encoding for TLS.
+          Adding a second curve adds one byte for CBOR and 2 bytes for TLS.
+        </t>
+        
+        <t>
+          For the CBOR encoding make the following changes:
+          <list style="symbols">
+            <t>
+              Change from a two byte enumeration to the the integer values from the COSE EC curve registry.
+            </t>
+          </list>
+        </t>
+
+        <figure>
+        <artwork>
+NamedGroup = {
+    secp256r1: 1, secp384r1: 2, secp521r1: 3,
+    x25519: 4, x448:5
+}
+
+supported_groups = [ + NamedGroup ]
+        </artwork>
+        </figure>
+      </section>
+
+      <section title="Key Share">
+        <t>
+          The TLS structure for key share is:
+        </t>
+
+        <figure>
+        <artwork><![CDATA[
+struct {
+    NamedGroup group;
+    opaque key_exchange<1..2^16-1>;
+} KeyShareEntry;
+
+struct {
+    KeyShareEntry client_shares<0..2^16-1>;
+} KeyShareClientHello;
+
+struct {
+    NamedGroup selected_group;
+} KeyShareHelloRetryRequest;
+         
+struct {
+   KeyShareEntry server_share;
+} KeyShareServerHello;
+]]></artwork>
+        </figure>
+        <t>
+          For the CBOR encoding make the following changes:
+          
+        </t>
+
+        <figure>
+        <artwork>
+keyShareEntry = {
+    secp256r1 : CompressedPointRepresentation,
+    secp384r1 : CompressedPointRepresentation,
+    secp521r1 : CompressedPointRepresentation,
+    x25519 : bstr,
+    x448 : bstr,
+    * NamedGroup : any          
+}
+
+key_share = KeyShare_ClientHello | KeyShare_HelloRetryRequest |
+        KeyShare_ServerHello
+
+KeyShare_ClientHello = [ *keyShareEntry]
+KeyShare_HelloRetryRequest = NamedGroup
+KeyShare_ServerHello = keyShareEntry
+
+        </artwork>
+        </figure>
+        <section title="ECDHE Parameters">
+          <t>
+            The TLS structure is:
+          </t>
+
+          <figure>
+          <artwork><![CDATA[
+struct {
+    uint8 legacy_form = 4;
+    opaque X[coordinate_length];
+    opaque Y[coordinate_length];
+} UncompressedPointRepresentation;
+]]></artwork>
+          </figure>
+          <t>
+            For the CBOR encoding make the following changes:
+            <list style="symbols">
+              <t>Switched to compressed points for space savings.</t>
+            </list>
+          </t>
+
+          <figure>
+          <artwork>
+CompressedPointReprentation = [
+    x : bstr,
+    y : bool
+]
+          </artwork>
+          </figure>
+        </section>
+      </section>
+      
+
+      <section title="Pre-Shared Key Exchange Modes">
+        <t>
+          The TLS structure is:
+        </t>
+        <figure>
+        <artwork><![CDATA[
+enum { psk_ke(0), psk_dhe_ke(1), (255) } PskKeyExchangeMode;
+
+struct {
+    PskKeyExchangeMode ke_modes<1..255>;
+} PskKeyExchangeModes;
+]]></artwork>
+        </figure>
+        <t>
+          Changes for CBOR:
+          <list style="symbols">
+          </list>
+        </t>
+
+        <figure>
+        <artwork>
+pskKeyExchangeMode = ( psk_key: 0, psk_dhe_ke:1 }
+
+psk_key_exchange_modes = [ + pskKeyExchangeMode]
+        </artwork>
+        </figure>
+      </section>
+
+      <section title="Early Data Indication">
+        <t>
+          Not used.
+        </t>
+<!--        
+early_data_indicator =
+     max_early_data_size : int, // new_sesion_ticket
+     nil                        // client_hello or encrypted_extensions
+-->
+      </section>
+
+      <section title="Pre-Shared Key Extension">
+        <t>
+          The TLS structure is:
+        </t>
+
+        <figure>
+        <artwork><![CDATA[
+struct {
+    opaque identity<1..2^16-1>;
+    uint32 obfuscated_ticket_age;
+} PskIdentity;
+
+opaque PskBinderEntry<32..255>;
+
+struct {
+    PskIdentity identities<7..2^16-1>;
+    PskBinderEntry binders<33..2^16-1>;
+} OfferedPsks;
+
+struct {
+    select (Handshake.msg_type) {
+        case client_hello: OfferedPsks;
+        case server_hello: uint16 selected_identity;
+    };
+} PreSharedKeyExtension;
+]]></artwork>
+        </figure>
+
+        <t>
+          The changes for CBOR are:
+        </t>
+
+        <figure>
+        <artwork>
+pre_shared_key = clientHello_PSK | serverHello_PSK
+
+clientHello_PSK = OfferedPsks
+
+serverHello_PSK = int
+
+OfferedPsks = [
+   identities : [ +PskIdentity ],
+   binders : bstr
+]
+
+PskIdentity = (
+    identity : bstr,
+    ? obfuscated_ticket_age : int
+)
+        </artwork>
+        </figure>
+        
+      </section>
+
+      <section title="Other Extensions">
+        <t>
+          TLS
+        </t>
+        <figure><artwork><![CDATA[
+  struct {
+    select(ClientOrServerExtension) {
+        case client:
+            CertificateType client_certificate_types<1..2^8-1>;
+        case server:
+            CertificateType client_certificate_type;
+   }
+} ClientCertTypeExtension;
+
+struct {
+    select(ClientOrServerExtension) {
+        case client:
+            CertificateType server_certificate_types<1..2^8-1>;
+        case server:
+            CertificateType server_certificate_type;
+    }
+} ServerCertTypeExtension;
+]]></artwork>
+        </figure>
+        <t>
+          CBOR
+        </t>
+
+        <figure>
+          <artwork>
+clientCertType = certTypeRequest | certTypeResponse
+serverCertType = certTypeRequest | certTypeResponse
+
+certTypeRequest = [+ cerType]
+certTypeResponse = certType
+
+certType = (x509:0, rawPublicKey:1 }
+
+          </artwork>
+        </figure>
+      </section>
+
+    </section>
+
+    <section title="Server Parameters">
+      <section title="Encrypted Extensions">
+        <t>
+          The TLS structure is:
+        </t>
+
+        <figure>
+        <artwork><![CDATA[
+struct {
+    Extension extensions<0..2^16-1>;
+} EncryptedExtensions;
+]]></artwork>
+        </figure>
+        <t>
+          For CBOR:
+        </t>
+<figure>
+        <artwork>
+EncryptedExtensions = [ * Extension ]
+        </artwork>
+</figure>
+      </section>
+
+    </section>
+
+    <section title="Certificate Request">
+      <t>
+        Not Used
+      </t>
+
+      <!--
+certificate_request = [
+    certificate_request_context : bstr,
+    extensions : [ * Extension ]
+    }
+    -->
+    </section>
+
+    <section title="Authentication Messages">
+      <section title="Certificate">
+        <t>
+          TLS
+        </t>
+
+        <fiigure>
+        <artwork><![CDATA[
+enum {
+    X509(0),
+    RawPublicKey(2),
+    (255)
+} CertificateType;
+
+struct {
+    select (certificate_type) {
+        case RawPublicKey:
+          /* From RFC 7250 ASN.1_subjectPublicKeyInfo */
+          opaque ASN1_subjectPublicKeyInfo<1..2^24-1>;
+
+        case X509:
+          opaque cert_data<1..2^24-1>;
+    };
+    Extension extensions<0..2^16-1>;
+} CertificateEntry;
+
+struct {
+    opaque certificate_request_context<0..2^8-1>;
+    CertificateEntry certificate_list<0..2^24-1>;
+} Certificate;
+]]></artwork>
+        </fiigure>
+
+        <figure>
+        <artwork>
+certificate = [
+    ? certificate_request_context : bstr,
+    certificate_list : [* CertificateEntry]
+]
+
+CertificateEntry = [
+    certificate : {
+        0 : bstr, // cert_data,
+        1 : bstr  // ASN1_subjectPublicKeyInfo
+    },
+    extensions : [* Extension]
+]
+
+        </artwork>
+        </figure>
+        
+      </section>
+
+      <section title="Certificate Verify">
+        <t>
+          TLS
+        </t>
+
+        <figure>
+        <artwork><![CDATA[
+struct {
+    SignatureScheme algorithm;
+    opaque signature<0..2^16-1>;
+} CertificateVerify;
+]]></artwork>
+        </figure>
+        <t>
+          CBOR
+        </t>
+
+        <figure>
+        <artwork>
+CertificateVerify = [
+    algorithm : SignatureScheme,
+    signature : bstr
+]
+        </artwork>
+        </figure>
+      </section>
+
+      <section title="Finish">
+        <t>
+          TLS
+        </t>
+<figure>
+        <artwork>
+struct {
+    opaque verify_data[Hash.length];
+} Finished;
+        </artwork>
+</figure>
+        <t>
+          CBOR
+        </t>
+
+        <figure>
+        <artwork>
+Finished = bstr
+        </artwork>
+        </figure>
+      </section>
+    </section>
+    <section title="Record Protocol">
+      <section title="Record Layer">
+        <t>
+          TLS
+        </t>
+        <figure>
+        <artwork><![CDATA[
+enum {
+    invalid(0),
+    change_cipher_spec(20),
+    alert(21),
+    handshake(22),
+    application_data(23),
+    (255)
+} ContentType;
+
+struct {
+    ContentType type;
+    ProtocolVersion legacy_record_version;
+    uint16 length;
+    opaque fragment[TLSPlaintext.length];
+} TLSPlaintext;
+]]></artwork>
+        </figure>
+        <t>
+          CBOR
+        </t>
+
+        <figure>
+        <artwork>
+contentType = (
+    invalid: 0, change_cipher_spec: 20, alert:21, handshake:22,
+    application_data:23
+)
+
+TLSPlaintext = (
+    type : contentType,
+    fragment : bstr
+)
+        </artwork>
+        </figure>
+      </section>
+
+      
+      <section title="Record Payload Protection">
+        <t>
+          TLS
+        </t>
+        <figure>
+        <artwork><![CDATA[
+struct {
+    opaque content[TLSPlaintext.length];
+    ContentType type;
+    uint8 zeros[length_of_padding];
+} TLSInnerPlaintext;
+
+struct {
+    ContentType opaque_type = application_data; /* 23 */
+    ProtocolVersion legacy_record_version = 0x0303; /* TLS v1.2 */
+    uint16 length;
+    opaque encrypted_record[TLSCiphertext.length];
+} TLSCiphertext;
+]]></artwork>
+        </figure>
+        <t>
+          CBOR
+        </t>
+        <fiigure>
+        <artwork>
+TLSCiphertext = (
+    type : application_data,
+    encrypted_record : bstr
+)
+        </artwork>
+        </fiigure>
+      </section>
+    </section>
+    <section title="CBOR Slashed Version">
+      <t>
+        There are many things that the EDHOC system did that slashed down size that has not been done for the previous version of TLS.
+        If these changes are made then a non-trivial amount of savings can be done that might or might not be considered acceptable in this situation.
+      </t>
+
+      <t>
+        For the puspose of making things even small we are making the following assumptions:
+        <list type="symbols">
+          <t>
+            Remove the random number strings from the system.
+            Since we are always going to do new ephemeral keys on both sides when the protocol is done, then the random numbers are not needed.
+            If new ephemeral keys are not done on both sides, then the perfect forward secrecy requirement is not met.
+          </t>
+
+          <t>
+            Trucate all HMAC values to 64-bits.
+          </t>
+
+          <t>
+            If the encrypted extensions handshake message is empty, then omit it.
+          </t>
+
+          <t>
+            In cases where a single value can be in an array, change the syntax to be either the single value or an array of values.
+          </t>
+
+          <t>
+            Change the behavior of some of the extensions by adding additional operations and changing defaults.
+            <list style="symbols">
+              <t>
+                Change the default value for client and server certificate type from "certificate" to "RPK" and "reference".
+              </t>
+              <t>
+                Change the behavior of the curves extension so that if it is omitted, then the cruve offered in the key share is assumed to be the only one supported by the client.
+              </t>
+                
+            </list>
+          </t>
+        </list>
+      </t>
+
+      
+    </section>
+
+    <section title="Transport with CoAP">
+      <t>
+        Transporting the messages w/ CoAP is fairly simple:
+
+        <list style="numbers">
+          <t>
+            Message #1 is a POST to a fixed location.
+          </t>
+          <t>
+            Message #2 is the response to the POST.
+            The message returns either Created (2.01) or a TLS Alert message with Bad Request  (4.00).
+            If the message is successful, then a Location-Path will be returned as part of the message.
+          </t>
+          <t>
+            Message #3 is a PUT to the returned location path from the above response.
+          </t>
+          <t>
+            Message #4 is either a TLS Alert message with Bad Request (4.00) or an empty Changed (2.04) message.
+            At this point the location path is deleted on the server.
+          </t>
+        </list>
+      </t>
+    </section>
+
+    
+  </middle>
+  <back>
+    <references title="Informational">
+      <?rfc include="reference.I-D.ietf-core-echo-request-tag.xml"?>
+    </references>
+    <section title="Sample Messages">
+      <section title="Standard TLS for X25519 and Ed25519">
+        <t>
+          The size of messge #1 is 97 bytes
+        </t>
+        <figure title="Message #1">
+          <artwork><![CDATA[
+22,
+<< 1,
+   [
+   h'0011223344556677889900112233445566778899001122334455
+   667788990011',  / random /
+      [ h'1304' / TLS_AES_128_CCM_SHA256 ], / cipher suites /
+      [ 51, [ 4 / x25519 /, h'00112233445566778899001122334455
+      66778899001122334455667788990011' ],
+        13, [ h'0807' / Ed2215 / ],  / signature algorithms /
+        10, [ 4 / secp256r1 / ],
+        19, [ 1 ] / client_cert_type /,
+        20, [ 1 ] / server_cert_type /,
+      ]
+   ]
+>>
+]]>
+          </artwork>
+          
+        </figure>
+
+        <t>
+          The size of message #2 is 262 bytes.
+          If you directly encode what is below it will be 16 bytes short as there is no provision in the CDDL for the 16 bytes of the MAC appended to the end of the encrypted data.
+        </t>
+        
+        <figure title="Message #2">
+          <artwork><![CDATA[
+22,
+<< 
+   2,
+   [
+   h'00112233445566778899001122334455667788990011223344
+   55667788990011',  / random /
+      h'1304', / cipher suite /
+      [
+      51, [ 4 / x25519 /,  h'001122334455667788990011223344
+      5566778899001122334455667788990011' ] / key share /
+      ]
+   ]
+>>,
+
+23,
+<<
+   4,
+   [ 19, 1, / client_cert_type /
+     20, 1  / server_cert_type /
+   ],
+   11,
+   [
+      [ 1 / rpk /,
+      h'1122334455667788990011223344556677889900112233445566
+      778899001122334455667788990011223344'
+      ]
+   ],
+   12,
+   [
+      h'0807',
+      h'1122334455667788990011223344556677889900112233445566
+      778899001122334455667788990011223344556677889900112233
+      4455667788990011223344'
+   ],
+   13,
+   h'1122334455667788990011223344556677889900112233445566
+   778899001122'
+>>
+]]></artwork>
+        </figure>
+
+        <t>
+          Size of message #3 is 175 bytes
+        </t>
+        
+        <figure title="Message #3">
+          <artwork><![CDATA[
+23,
+<<
+   11,
+   [
+      [ 1 / rpk /,
+      h'11223344556677889900112233445566778899001122334455
+      66778899001122334455667788990011223344'
+      ]
+   ],
+   12,
+   [
+      h'0807',
+      h'112233445566778899001122334455667788990011223344
+      55667788990011223344556677889900112233445566778899
+      001122334455667788990011223344'
+   ],
+   13,
+   h'1122334455667788990011223344556677889900112233445566
+   778899001122'
+>>
+]]></artwork>
+        </figure>
+
+      </section>
+      <section title="Pre-shared key for authentication w/ ephemeral DH">
+        <t>
+          The size of messge #1 is 97 bytes
+        </t>
+        <figure title="Message #1">
+          <artwork><![CDATA[
+22,
+<< 1,
+   [
+   h'001122334455667788990011223344556677889
+   9001122334455667788990011',  / random /
+      [ h'1304' / TLS_AES_128_CCM_SHA256 ], / cipher suites /
+      [ 51, [ 4 / x25519 /, h'0011223344556677889900112233445
+      566778899001122334455667788990011' ],
+        13, [ h'0807' / Ed2215 / ],  / signature algorithms /
+        10, [ 4 / secp256r1 / ],
+        19, [ 1 ] / client_cert_type /,
+        20, [ 1 ] / server_cert_type /,
+      ]
+   ]
+>>
+]]>
+          </artwork>
+          
+        </figure>
+
+        <t>
+          The size of message #2 is 262 bytes.
+          If you directly encode what is below it will be 16 bytes short as there is no provision in the CDDL for the 16 bytes of the MAC appended to the end of the encrypted data.
+        </t>
+        
+        <figure title="Message #2">
+          <artwork><![CDATA[
+22,
+<< 
+   2,
+   [
+   h'001122334455667788990011223344556677889900112233445
+   5667788990011',  / random /
+      h'1304', / cipher suite /
+      [
+      51, [ 4 / x25519 /,  h'00112233445566778899001122
+      33445566778899001122334455667788990011' ] / key share /
+      ]
+   ]
+>>,
+
+23,
+<<
+   4,
+   [ 19, 1, / client_cert_type /
+     20, 1  / server_cert_type /
+   ],
+   11,
+   [
+      [ 1 / rpk /,
+      h'1122334455667788990011223344556677889900112233445566
+      778899001122334455667788990011223344'
+      ]
+   ],
+   12,
+   [
+      h'0807',
+      h'1122334455667788990011223344556677889900112233445566
+      7788990011223344556677889900112233445566778899001122
+      334455667788990011223344'
+   ],
+   13,
+   h'112233445566778899001122334455667788990011223344556677
+     8899001122'
+>>
+]]></artwork>
+        </figure>
+
+        <t>
+          Size of message #3 is 175 bytes
+        </t>
+        
+        <figure title="Message #3">
+          <artwork><![CDATA[
+23,
+<<
+   11,
+   [
+      [ 1 / rpk /,
+        h'11223344556677889900112233445566778899001122334455
+          66778899001122334455667788990011223344'
+      ]
+   ],
+   12,
+   [
+      h'0807',
+      h'1122334455667788990011223344556677889900112233445566
+       77889900112233445566778899001122334455667788990011223
+       34455667788990011223344'
+   ],
+   13,
+   h'1122334455667788990011223344556677889900112233445566778
+     899001122'
+>>
+]]></artwork>
+        </figure>
+
+        
+      </section>
+
+      <!-- ************************************************************************* -->
+      
+      <section title="Stripped TLS w/ Ed25519">
+        <t>
+          The size of messge #1 is 47 bytes
+        </t>
+        <figure title="Message #1">
+          <artwork><![CDATA[
+22,
+<< 1,
+   [
+      1 / TLS_AES_128_CCM_SHA256_64 /,     / cipher suites /
+      [ 1, [ 4 / x25519 /, h'00112233445566778899001122334455
+                             66778899001122334455667788990011' ],
+        2, 99 / Ed2215 /                   / signature algorithms /
+      ]
+   ]
+>>
+]]>
+          </artwork>
+          
+        </figure>
+
+        <t>
+          The size of message #2 is 146 bytes.
+          The encryption authentication code is added as a separate at the end of the encrypted handshake block.
+        </t>
+        
+        <figure title="Message #2">
+          <artwork><![CDATA[
+22,
+<< 
+   2,
+   [
+      1 / TLS_AES_128_CCM_SHA256_64 /,           / cipher suite /
+      [
+      1, [ 4 / x25519 /,  h'001122334455667788990011223344
+            5566778899001122334455667788990011' ] / key share /
+      ]
+   ]
+>>,
+
+23,
+<<
+   11,
+   [
+      [ 9 / reference /,
+        h'1122334455'
+      ]  / certificate /
+   ],
+   12,
+   [
+      99,
+      h'11223344556677889900112233445566778899001122
+      3344556677889900112233445566778899001122334455
+      66778899001122334455667788990011223344'
+      / signature /
+   ], / certificate verify /
+   13,
+   h'1122334455667788', / finish /
+   h'11223344556677'  / encryption authentication code /   
+>>
+]]></artwork>
+        </figure>
+
+        <t>
+          Size of message #3 is 102 bytes
+        </t>
+        
+        <figure title="Message #3">
+          <artwork><![CDATA[
+23,
+<<
+   11,
+   [
+      [ 9 / reference /,
+        h'1122334455'
+      ]
+   ],  / certificate /
+   12,
+   [
+      99,
+      h'11223344556677889900112233445566778899001122
+        33445566778899001122334455667788990011223344
+        5566778899001122334455667788990011223344'
+   ], / certificate verify /
+   13,
+   h'1122334455667788', / finish /
+   h'1122334455667788'  / encryption authentication code /   
+>>
+]]></artwork>
+        </figure>
+
+        
+      </section>
+      <section title="Stripped TLS w/ PSK">
+        <t>
+          The size of messge #1 is 65 bytes
+        </t>
+        <figure title="Message #1">
+          <artwork><![CDATA[
+22,
+<< 1,
+   [
+      1,                  / cipher suites /
+      [ 1, [ 4 / x25519 /, h'001122334455667788990011
+                    2233445566778899001122334455667788990011' ],
+        2, 99,         / signature algorithms /
+        6, [ h'0102030405', h'0102030405060708' ]
+      ]
+   ]
+>>
+]]>
+          </artwork>
+          
+        </figure>
+
+        <t>
+          The size of message #2 is 59 bytes.
+          If you directly encode what is below it will be 16 bytes short as there is no provision in the CDDL for the 16 bytes of the MAC appended to the end of the encrypted data.
+        </t>
+        
+        <figure title="Message #2">
+          <artwork><![CDATA[
+22,
+<< 
+   2,
+   [
+      1, / cipher suite /
+      [
+        1, [ 4 / x25519 /,  h'0011223344556677889900112233445
+             566778899001122334455667788990011' ], / key share /
+        6, 1
+      ]
+  ]
+>>,
+
+23,
+<<
+   13,
+   h'1122334455667788'
+>>
+]]></artwork>
+        </figure>
+
+        <t>
+          Size of message #3 is 12 bytes
+        </t>
+        
+        <figure title="Message #3">
+          <artwork><![CDATA[
+23,
+<<
+   13,
+   h'1122334455667788'
+>>
+]]></artwork>
+        </figure>
+
+        
+      </section>
+    </section>
+    <section title="Open ideas for ways to make things smaller">
+      <t>
+        The following things can still be considered for shrinking things:
+        <list style="symbols">
+          <t>Make the random values optional.  This would kill 66 bytes from the first and second messages.</t>
+          <t>Think of a way to shorten the SKI encoding of the raw public key.</t>
+          <t>Decode to re-encode the signature and cipher suite numbers</t>
+          <t>Change some of the default values.  For example we could change to RPK being the default certificate type.</t>
+          <t>
+            Create a HMAC cipher suite which truncates the output for doing finish messages.
+            This is not unusual for the world of IoT and thus should be considered.
+            Halving the length of this saves 17 bytes in message 2 and 3.
+          </t>
+        </list>
+      </t>
+    </section>
+    <section title="EDHOC issues that worry me">
+      <t>
+        I still need to actually read the current document.
+        From a quick glance through I have the following issues:
+        <list style="symbols">
+          <t>It is limited to four cipher suites of which only two are globally defined.</t>
+          <t>Need to validate that P-256 can do key agreement correctly with only an X coordinate.</t>
+        </list>
+      </t>
+    </section>
+  </back>
+</rfc>

@@ -1,0 +1,213 @@
+<?xml version='1.0' encoding='US-ASCII'?>
+<!DOCTYPE rfc SYSTEM "rfc2629.dtd" [
+]>
+
+<?rfc toc="yes"?>
+<?rfc symrefs='yes'?>
+<?rfc sortrefs='yes'?>
+
+<rfc docName="draft-schaad-cnf-cwt-id-00" category="exp">
+  <front>
+    <title abbrev="CWT ID Confirmation">Use of a CWT identifier as a Confirmation Method</title>
+    <author fullname="Jim Schaad" initials="J." surname="Schaad">
+      <organization>August Cellars</organization>
+      <address>
+        <email>ietf@augustcellars.com</email>
+      </address>
+    </author>
+    <date/>
+    <area>Security Area</area>
+    <abstract>
+      <t>
+        TBD
+      </t>
+    </abstract>
+  </front>
+  <middle>
+    <section title="Introduction">
+      <t>
+        In many cases an authorization in the form of a COSE Web Token (CWT) <xref target="RFC8392"/> will be issued in the ACE OAuth <xref target="I-D.ietf-ace-oauth-authz"/> framework with a minimal set of privileges and a Proof-of-Possession claim <xref target="I-D.ietf-ace-cwt-proof-of-possession"/>.
+        It may then become necessary to issue a new token for a shorter period with more capabilities, but use the same information for validation.
+        In these cases it makes sense to issue a new authorization token which refers the the first token to provide the additional capabilities.
+        This document defines a new confirmation type that allows this type of referencing to be done.
+      </t>
+
+      <t>
+        This differs from the refresh token in that the new token will be limited to the duration of the existing CWT, while a new POP CWT would be issued when using a refresh token.
+      </t>
+      
+      <section title="Conventions Used in This Document" anchor="MUSTS">
+
+        <t>
+          The key words "MUST", "MUST NOT", "REQUIRED", "SHALL", "SHALL
+          NOT", "SHOULD", "SHOULD NOT", "RECOMMENDED", "NOT RECOMMENDED",
+          "MAY", and "OPTIONAL" in this document are to be interpreted as
+          described in BCP 14 <xref target="RFC2119" /> <xref target="RFC8174"/> when, and only when, they
+          appear in all capitals, as shown here.
+        </t>
+      </section>
+    </section>
+
+    <section title="Terminology">
+      <t>
+      <list style="symbols">
+        <t>
+          "Relying Party" is used in this document to refer to the party which is relying on the contents of a CWT in order to make a security decision.
+          In other OAuth documents, this is normally referred to as the XXXXXX.
+        </t>
+
+        <t>
+          "Referenced CWT" is used to denote the CWT which is referred to or referenced by a referencing CWT.
+          The referenced CWT has a confirmation type with the POP keying information in it.
+        </t>
+
+        <t>
+          "Referencing CWT" is used to denote the CWT which is making a reference to a second CWT.
+          The referencing CWT contains the confirmation type defined in this document.
+        </t>
+      </list>
+      </t>
+    </section>
+    
+    <section title="CWT Id Confirmation Method">
+      <t>
+        The CWT Id confirmation method is identified by TBD1 in the 'cnf' element (defined in <xref target="I-D.ietf-ace-cwt-proof-of-possession"/>.
+        For use in documentation the string value of 'cwtid' is to be used to refer to this confirmation type.
+      </t>
+
+      <t>
+        The CWT Id confirmation method uses the type of CBOR map and has the following fields:
+      </t>
+      <t>
+      <list style="symbols">
+        <t>
+          Issuer is an optional field in the map.
+          If present the issuer field contains the 'iss' field of CWT which is being referenced.
+          If absent, the issuer is the same entity which issued the referencing CWT.
+          When encoded, this field uses TBD2 as the map key.
+        </t>
+
+        <t>
+          CWT Id is a required field in the map.
+          The field contains the 'cwtid' field of the referenced CWT.
+          When encoded, this field uses TBD3 as the map key.
+        </t>
+      </list>
+      </t>
+
+      <t>
+        An example of what this would look like is:
+      </t>
+      <figure>
+        <artwork>
+/ cnf /: {
+    / cwtid /: 'CWTID 1234',
+    / iss /: "Entry-Level AS"
+}
+        </artwork>
+      </figure>
+    </section>
+
+    <section title="CWT Id in AS Response">
+      <t>
+        Since the CWT Id is currently only provided to the RS as part of the token, for an AS which supports this option the CWT Id additionally needs to be provided to the Client.
+        This document therefore defines two new fields to go into C-AS response messages:
+        <list>
+          <t>
+            "iss" provides the issuer name of the CWT.  This field is only present for an AS which would allow a second AS to refer to the CWT.
+          </t>
+          <t>
+            "cwtid" contains the CWT Id for the issued token.
+          </t>
+        </list>
+      </t>
+          
+        
+    </section>
+    
+    <section title="Processing Rules for the Issuer of a CWT Id Confirmation Method">
+      <t>
+        When an AS  is going to issue a CWT it MUST perform the following steps or their equivalent:
+      </t>
+
+      <t>
+      <list style="numbers">
+        <t>
+          If the issued CWT will refer to a CWT issued by a different AS, the issuing AS MUST be configured to permit this.
+        </t>
+
+        <t>
+          The AS MUST validate that the entity for which this CWT is being issued for is the same entity that is the subject of the referenced CWT.
+          This can be done by causing the client to perform a POP operation with the referenced CWTs POP key information or by querying the AS which issued the referenced CWT.
+          If the same AS is being used for both CWTs, then the AS can consult a database of clients and CWTs to check for identity matching.
+        </t>
+        
+        <t>
+          The issued CWT should refer to the original POP CWT.
+          The chain of trust SHOULD NOT be transitive through another CWT.
+        </t>
+      </list>
+      </t>
+    </section>
+    
+    <section title="Processing Rules for the CWT Id Confirmation Method">
+      <t>
+        When a relying party receives a referencing CWT it MUST perform the following steps or their equivalent as part of making a security decision:
+      </t>
+
+      <t>
+      <list style="numbers">
+        <t>
+          The referencing CWT MUST have the authentication checked on it.
+          If the authentication fails, the CWT MUST be rejected.
+        </t>
+
+        <t>
+          If the CWT Id confirmation type contains an issuer field, configuration information MUST be checked that the referencing CWT issuer is permitted to use the referenced CWT issuer.
+          If the reference is not permitted, then the CWT MUST be rejected.
+        </t>
+
+        <t>
+          If the referenced CWT is expired, the referencing CWT MUST be rejected.
+        </t>
+
+        <t>
+          The claims in the referenced CWT are copied from the referenced CWT to the referencing CWT if the claim does not exist in the referencing CWT.
+        </t>
+
+        <t>
+          The modified CWT is then processed in a normal manner.
+        </t>
+      </list>
+      </t>
+    </section>
+    <section title="Security Considerations">
+      <t>
+        As the security of the set of CWTs is going rest on the underlying POP CWT, loss of the key will allow any CWT which references the orignal CWT to be used by a third party.
+        All entities which have the secret portion of the key need to protect that portion of the key.
+      </t>
+
+      <t>
+        The use of this feature assumes a specific model of evaluating the rules for access control.
+        Specifically, it assumes that if there are multiple access tokens, satisfying the conditions for any of the tokens means that access is going to be granted.
+        This model is in contrast to one where if any of the access tokens was a deny, then access to to the resource would be denied.
+      </t>
+      
+    </section>
+    <section title="IANA Considerations">
+      <t>
+        There are some items that need to be registered.
+        Figure out what they are and put them here.
+      </t>
+    </section>
+  </middle>
+  <back>
+    <references title="Normative References">
+      <?rfc include="reference.RFC.2119"?>
+      <?rfc include="reference.RFC.8174"?>
+      <?rfc include="reference.RFC.8392"?>
+      <?rfc include="reference.I-D.ietf-ace-cwt-proof-of-possession.xml"?>
+      <?rfc include="reference.I-D.ietf-ace-oauth-authz.xml"?>
+    </references>
+  </back>
+</rfc>
